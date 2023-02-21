@@ -2,7 +2,14 @@
 extends DialogicEvent
 class_name DialogicAdvancedEvent
 
-# Define properties of the event here
+### Settings
+
+## The path to the voicedata file.
+var file_path: String = ""
+## The volume the voice will be played at.
+var volume: float = 0
+## The audio bus to play the voice on.
+var audio_bus: String = "Master"
 
 func _execute() -> void:
 	# This will execute when the event is reached
@@ -13,10 +20,12 @@ func _execute() -> void:
 ## 						INITIALIZE
 ################################################################################
 
-# Set fixed settings of this event
 func _init() -> void:
 	event_name = "Advanced Voice"
-	event_category = Category.Other
+	set_default_color('Color1')
+	event_category = Category.AudioVisual
+	event_sorting_index = 5
+	expand_by_default = false
 
 
 
@@ -24,12 +33,14 @@ func _init() -> void:
 ## 						SAVING/LOADING
 ################################################################################
 func get_shortcode() -> String:
-	return "advanced_voice"
+	return "adv_voice"
 
 func get_shortcode_parameters() -> Dictionary:
 	return {
-		#param_name 	: property_info
-		#"my_parameter"		: {"property": "property", "default": "Default"},
+		#param_name : property_info
+		"path"		: {"property": "file_path", "default": ""},
+		"volume"	: {"property": "volume", 	"default": 0},
+		"bus"		: {"property": "audio_bus", "default": "Master"}
 	}
 
 # You can alternatively overwrite these 3 functions: to_text(), from_text(), is_valid_event()
@@ -38,5 +49,10 @@ func get_shortcode_parameters() -> Dictionary:
 ## 						EDITOR REPRESENTATION
 ################################################################################
 
-func build_event_editor() -> void:
-	pass
+func build_event_editor():
+	add_header_edit('file_path', ValueType.File, '', 'is the audio for the next text', 
+			{'file_filter'	: "*.mp3, *.ogg, *.wav", 
+			'placeholder' 	: "Select file", 
+			'editor_icon' 	: ["AudioStreamPlayer", "EditorIcons"]})
+	add_body_edit('volume', ValueType.Decibel, 'volume:', '', {}, '!file_path.is_empty()')
+	add_body_edit('audio_bus', ValueType.SinglelineText, 'audio_bus:', '', {}, '!file_path.is_empty()')

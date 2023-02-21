@@ -1,7 +1,8 @@
 # Dialogic advaced voice module
  A more advanced voice support module for the Godot dialogic plugin
- While working on voice support event for the dialogic plugin, I was essentially called out for feature-creeping it.
- And so this has branch out to becoming a "dialogic addition".
+ Short backstory: While working on voice support event for the dialogic plugin, I was essentially called out for feature-creeping it.
+ I do not disagree. Still, I want these features.
+ And so my work on the voice support event has branched out to becoming a "dialogic addition", where I am free to develop this as insanely feature rich as I wish.
  This event act as a complete replacement to the existing voice event, reusing most of its code. It will be tested with and without that event installed, but it is recommended to remove the existing voice event from dialogic when using this module.
 
 # How to test or install
