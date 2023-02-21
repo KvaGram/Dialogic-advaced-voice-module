@@ -12,7 +12,7 @@ This event act as a complete replacement to the existing voice event, reusing mo
 
 # How this differes from Dialogic's base voice event
 
-Unlike the base event, this advanced event is *disconnected* from the text event, and is meant to be, in a sense, *"preloaded*" at the start of an event, or series of dialog.
+Unlike the base event, this advanced event is *disconnected* from the text event, and is meant to be, in a sense, *"preloaded*" at the start of a timeline, or series of dialog.
 Further unlike the base event, a voice line will not start automatically.
 
 A text effect is required to trigger the functions of the advanced voice event.
