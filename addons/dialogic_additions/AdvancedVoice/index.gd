@@ -9,5 +9,5 @@ func _get_subsystems() -> Array:
 
 #TODO: add voice editor
 func _get_editors() -> Array[String]:
-	#return [this_folder.path_join('Voicedata_editor.tscn')]
-	return []
+	return [this_folder.path_join('Voicedata_editor.tscn')]
+	#return []

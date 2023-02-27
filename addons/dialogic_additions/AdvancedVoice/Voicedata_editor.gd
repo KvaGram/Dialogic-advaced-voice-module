@@ -20,9 +20,9 @@ func _register() -> void:
 	add_voicedata_button.pressed.connect(
 			editors_manager.show_add_resource_dialog.bind(
 			new_voicedata, 
-			'*.dch; DialogicCharacter',
-			'Create new character',
-			'character',
+			'*.dvd; DialogicVoicedata',
+			'Create new voice data',
+			'new voice data',
 			))
 
 # Called when a character is opened somehow
