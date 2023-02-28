@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1h84qm168c3w"]
+
+[ext_resource type="Script" path="res://addons/dialogic_additions/AdvancedVoice/VoiceSegmentPanel.gd" id="1_3mmi3"]
+
+[node name="VoiceSegmentPanel" type="HBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1.0
+offset_bottom = -602.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3mmi3")
+
+[node name="HFlowContainer" type="HFlowContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HFlowContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="HFlowContainer/HBoxContainer"]
+layout_mode = 2
+text = "index"
+
+[node name="spinIndex" type="SpinBox" parent="HFlowContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+max_value = 999.0
+value = 999.0
+
+[node name="Label" type="Label" parent="HFlowContainer/HBoxContainer"]
+layout_mode = 2
+text = "Start at"
+
+[node name="spinStartTime" type="SpinBox" parent="HFlowContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+max_value = 9999.9
+step = 0.1
+value = 9999.9
+suffix = "sec"
+
+[node name="Label2" type="Label" parent="HFlowContainer/HBoxContainer"]
+layout_mode = 2
+text = "Stop at"
+
+[node name="spinStopTime" type="SpinBox" parent="HFlowContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+max_value = 9999.9
+step = 0.1
+value = 9999.9
+suffix = "sec"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HFlowContainer"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+
+[node name="txtNotes" type="TextEdit" parent="HFlowContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "notes of what this segment contains."
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 2
+text = "TEST"

@@ -7,6 +7,7 @@ class_name Voicedata
 @export var startTimes : Array[float]
 @export var stopTimes : Array[float]
 @export var notes : Array[String]
+@export var display_name : String
 
 
 
