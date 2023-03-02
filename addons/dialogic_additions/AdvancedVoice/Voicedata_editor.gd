@@ -2,6 +2,7 @@
 extends DialogicEditor
 
 var loading:bool #safety flag, prevents accidental saving
+var segmentPanelNode:PackedScene = preload("res://addons/dialogic_additions/AdvancedVoice/VoiceSegmentPanel.tscn")
 
 ##############################################################################
 ##							RESOURCE LOGIC
@@ -32,13 +33,46 @@ func _open_resource(resource:Resource) -> void:
 	
 	# make sure changes in the ui won't trigger saving
 	loading = true
+	
+	
+	
 	#(...)
 	#Add signal?
 	#voicedata_loaded.emit(resource.resource_path)
+	loading = false
+
+func on_move_segment(old_i, new_i):
+	%boxSegments.move_child(%boxSegments.get_child(old_i), new_i)
+	#Segments must be reloaded to refrect their new data
+	reload_segments()
+	something_changed()
+
+#updates the datafields for all the segment panels.
+#load_segment grabs the desired data using the child index under %boxSegments
+func reload_segments():
+	var l = (current_resource as Voicedata).startTimes.size()
+	#if there are too many segment panels, remove the excess
+	#this may happen during loading or when removing a segment
+	while %boxSegments.get_child_count() > l:
+		var c = %boxSegments.get_child(-1)
+		%boxSegments.remove_child(c)
+		c.queue_free()
+	#If there are too few segment panels, add new ones.
+	#This may happen during loading, or when adding a segment
+	while %boxSegments.get_child_count() < l:
+		var c = segmentPanelNode.instantiate()
+		%boxSegments.add_child(c)
+	#update each segment panel
+	for c in %boxSegments.get_children():
+		c.load_segment(current_resource as Voicedata)
 
 func _save_resource() -> void:
 	if ! visible or not current_resource:
 		return
+	
+	for c in %boxSegments.get_children():
+		c.save_segment(current_resource)
+	#TODO: save audiopath
 	
 	#example code from character editor. Mimic and adapt for voicedata.	
 #	# Portrait list
@@ -60,18 +94,16 @@ func _save_resource() -> void:
 #	for main_edit in %MainEditTabs.get_children():
 #		current_resource = main_edit._save_changes(current_resource)
 #
-#	ResourceSaver.save(current_resource, current_resource.resource_path)
-#	current_resource_state = ResourceStates.Saved
-#	editors_manager.resource_helper.rebuild_character_directory()
+	ResourceSaver.save(current_resource, current_resource.resource_path)
+	current_resource_state = ResourceStates.Saved
 
 func new_voicedata(path: String) -> void:
 	var resource := Voicedata.new()
 	resource.resource_path = path
 	resource.display_name = path.get_file().trim_suffix("."+path.get_extension())
-	#example code from character editor. Mimic and adapt for voicedata.	
-#	resource.color = Color(1,1,1,1)
-#	resource.default_portrait = ""
-#	resource.custom_info = {}
+	resource.startTimes[0] = 0.0
+	resource.stopTimes[0] = 0.1
+	resource.notes[0] = "First segment. change me"
 	ResourceSaver.save(resource, path)
 	editors_manager.edit_resource(resource)
 
