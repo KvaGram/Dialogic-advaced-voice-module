@@ -1,8 +1,17 @@
 @tool
 extends DialogicEditor
 
+var plugin_reference:EditorPlugin
 var loading:bool #safety flag, prevents accidental saving
 var segmentPanelNode:PackedScene = preload("res://addons/dialogic_additions/AdvancedVoice/VoiceSegmentPanel.tscn")
+var audio:AudioStream
+var audio_previews:Array[Texture2D]
+
+
+var sel_entry:int = 0
+
+###TODO: attempt to recreate a preview generator by adding a muted audiobus, and recording it's local volume.
+
 
 ##############################################################################
 ##							RESOURCE LOGIC
@@ -26,6 +35,7 @@ func _register() -> void:
 			'new voice data',
 			))
 
+
 # Called when a character is opened somehow
 func _open_resource(resource:Resource) -> void:
 	# update resource
@@ -33,6 +43,10 @@ func _open_resource(resource:Resource) -> void:
 	
 	# make sure changes in the ui won't trigger saving
 	loading = true
+	reload_segments()
+	
+	#maybe todo: add support for multible audiostreams
+	#plugin_reference.get_editor_interface().get_resource_previewer().queue_resource_preview(current_resource.get_stream_path(0),self, &"_on_preview_recived",0)
 	
 	
 	
@@ -41,37 +55,72 @@ func _open_resource(resource:Resource) -> void:
 	#voicedata_loaded.emit(resource.resource_path)
 	loading = false
 
-func on_move_segment(old_i, new_i):
-	%boxSegments.move_child(%boxSegments.get_child(old_i), new_i)
-	#Segments must be reloaded to refrect their new data
-	reload_segments()
-	something_changed()
+	#maybe todo: add support for multible audiostreams
+func _on_preview_recived(_path:String, preview:Texture2D, _thumbnail_preview:Texture2D, _userdata):
+	audio_previews[0] = preview
+	%timeline_texture.texture = preview
+
+#func on_move_segment(old_i, new_i):
+#	%boxSegments.move_child(%boxSegments.get_child(old_i), new_i)
+#	#Segments must be reloaded to refrect their new data
+#	reload_segments()
+#	something_changed()
+
+#func on_new_segment():
+#	var c = segmentPanelNode.instantiate()
+#	%boxSegments.add_child(c)
+#	something_changed()
 
 #updates the datafields for all the segment panels.
 #load_segment grabs the desired data using the child index under %boxSegments
 func reload_segments():
-	var l = (current_resource as Voicedata).startTimes.size()
-	#if there are too many segment panels, remove the excess
-	#this may happen during loading or when removing a segment
-	while %boxSegments.get_child_count() > l:
-		var c = %boxSegments.get_child(-1)
-		%boxSegments.remove_child(c)
-		c.queue_free()
-	#If there are too few segment panels, add new ones.
-	#This may happen during loading, or when adding a segment
-	while %boxSegments.get_child_count() < l:
-		var c = segmentPanelNode.instantiate()
-		%boxSegments.add_child(c)
-	#update each segment panel
-	for c in %boxSegments.get_children():
-		c.load_segment(current_resource as Voicedata)
+	%listEntries.clear()
+	var data:Voicedata = current_resource as Voicedata
+	for i in range(data.startTimes.size()):
+		%listEntries.add_item(data.makeEntryShortName(i))
+	if sel_entry < data.startTimes.size():
+		selectEntry(sel_entry)
+	else:
+		selectEntry(0)
+#	#if there are too many segment panels, remove the excess
+#	#this may happen during loading or when removing a segment
+#	while %boxSegments.get_child_count() > l:
+#		var c = %boxSegments.get_child(-1)
+#		%boxSegments.remove_child(c)
+#		c.queue_free()
+#	#If there are too few segment panels, add new ones.
+#	#This may happen during loading, or when adding a segment
+#	while %boxSegments.get_child_count() < l:
+#		var c = segmentPanelNode.instantiate()
+#		%boxSegments.add_child(c)
+#	#update each segment panel
+#	for c in %boxSegments.get_children():
+#		c.load_segment(current_resource as Voicedata)
+func selectEntry(index:int):
+	sel_entry = index
+	#TODO: populate entry editor
+	loading = true
+	%spinIndex.value = 0
+	%spinStartTime.value = 0
+	%spinStopTime.value = 0
+	%txtNotes.text = "Hello world"
+	loading = false
 
 func _save_resource() -> void:
-	if ! visible or not current_resource:
+	if loading or not visible or not current_resource:
 		return
-	
-	for c in %boxSegments.get_children():
-		c.save_segment(current_resource)
+#	var size = %boxSegments.get_child_count()
+#	if current_resource.startTimes.size() != size:
+#		current_resource.startTimes.resize(size)
+#		current_resource.stopTimes.resize(size)
+#		current_resource.notes.resize(size)
+#
+#	for c in %boxSegments.get_children():
+#		var i = c.get_index()
+#		current_resource.startTimes[i] = c.get_start()
+#		current_resource.stopTimes[i] = c.get_stop()
+#		current_resource.notes[i] = c.get_notes()
+		
 	#TODO: save audiopath
 	
 	#example code from character editor. Mimic and adapt for voicedata.	
@@ -101,15 +150,23 @@ func new_voicedata(path: String) -> void:
 	var resource := Voicedata.new()
 	resource.resource_path = path
 	resource.display_name = path.get_file().trim_suffix("."+path.get_extension())
-	resource.startTimes[0] = 0.0
-	resource.stopTimes[0] = 0.1
-	resource.notes[0] = "First segment. change me"
+	resource.startTimes = [0.0]
+	resource.stopTimes = [0.1]
+	resource.notes = ["First segment. change me"]
 	ResourceSaver.save(resource, path)
 	editors_manager.edit_resource(resource)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	
+#	if not plugin_reference:
+#		plugin_reference = find_parent('EditorView').plugin_reference
+#		print("looking for EditorView: " + find_parent("EditorView").to_string())
+#		print("looking for plugin_ref: " + plugin_reference.to_string())
+#
+#	#test
+#	plugin_reference.get_editor_interface().get_resource_previewer().queue_resource_preview("res://test-project/362403__trouby__door-sound.wav",self, &"_on_preview_recived",0)
+	pass
 
 func something_changed(fake_argument = "", fake_arg2 = null) -> void:
 	if not loading:
@@ -120,3 +177,37 @@ func something_changed(fake_argument = "", fake_arg2 = null) -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
+
+#TODO: EVERYTHING BELOW!
+
+#search for a segment. select first match (text contains) in notes, if any.
+func _on_entry_search_text_changed(new_text):
+	pass # Replace with function body.
+	
+#when searching, goes to the next match after selected, wraps around.
+func _on_entry_search_text_next(new_text):
+	pass # Replace with function body.
+
+#deletes a segment
+func _on_btn_delete_segment_pressed():
+	pass # Replace with function body.
+
+#adds a segment
+func _on_btn_add_segment_pressed():
+	pass # Replace with function body.
+
+
+func _on_notes_changed():
+	pass # Replace with function body.
+
+
+func _on_stop_time_changed(value:float):
+	pass # Replace with function body.
+
+func _on_start_time_changed(value:float):
+	pass # Replace with function body.
+
+func _on_index_changed(value:float):
+	pass # Replace with function body.
+
+

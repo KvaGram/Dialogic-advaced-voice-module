@@ -1,4 +1,6 @@
+@tool
 extends HBoxContainer
+class_name VoiceSegmentEditPanel
 
 var _expanded:bool = false
 
@@ -46,21 +48,22 @@ func set_stop(val:float):
 	_stop = val
 
 func load_segment(data:Voicedata):
-	set_start(data.get_start(self.get_index()))
-	set_stop(data.get_stop(self.get_index()))
-	set_notes(data.get_notes(self.get_index()))
+	set_start(data.get_start(self.get_index(),0))
+	set_stop(data.get_stop(self.get_index(),0))
+	set_notes(data.get_notes(self.get_index(),0))
 	refresh()
 
-func sava_segment(data:Voicedata):
-	data.startTimes[self.get_index()] = get_start()
-	data.stopTimes[self.get_index()] = get_stop()
-	data.notes[self.get_index()] = get_notes()
-	
-	return {
-		"start" : get_start(),
-		"notes" : get_notes(),
-		"stop" : get_stop(),
-	}
+#TODO: remove?
+#func save_segment(data:Voicedata):
+#	data.startTimes[self.get_index()] = get_start()
+#	data.stopTimes[self.get_index()] = get_stop()
+#	data.notes[self.get_index()] = get_notes()
+#
+#	return {
+#		"start" : get_start(),
+#		"notes" : get_notes(),
+#		"stop" : get_stop(),
+#	}
 
 func _on_txt_notes_text_changed():
 	_notes = %txtNotes.text

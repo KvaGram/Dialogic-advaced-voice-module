@@ -3,7 +3,7 @@ extends Resource
 class_name Voicedata
 
 # Packages audiofile for voiceover with an index of dialog lines.
-@export_file("*.mp3", "*.vaw", "*.ogg") var audio_file_path:String = ""
+@export_file("*.mp3", "*.vaw", "*.ogg") var main_audio_path:String = ""
 @export var startTimes : Array[float]
 @export var stopTimes : Array[float]
 @export var notes : Array[String]
@@ -18,6 +18,10 @@ class_name Voicedata
 func _to_string() -> String:
 	return "[{name}:{id}]".format({"name":get_voicedata_name(), "id":get_instance_id()})
 
+func makeEntryShortName(index:int)->String:
+	return "%03d - [%6.1f-%-6.1f] %s" % [index, startTimes[index], stopTimes[index], (notes[index] if len(notes[index]) <= 20 else notes[index].substr(0,18) + "..")]
+	
+
 func _hide_script_from_inspector() -> bool:
 	return true
 
@@ -29,29 +33,41 @@ func get_voicedata_name() -> String:
 func is_self(path):
 	return self.resource_path == path
 
-#future proofing for an advanced voicedata with multible audio files.
+#future proofing for an advanced voicedata, possebly with multible audiostreams.
 #This base version support only 1 audio stream.
 func get_streams() -> Array[AudioStream]:
-	var stream:AudioStream = ResourceLoader.load(audio_file_path, "AudioStream", ResourceLoader.CACHE_MODE_REUSE)
+	var stream:AudioStream = ResourceLoader.load(main_audio_path, "AudioStream", ResourceLoader.CACHE_MODE_REUSE)
 	return [stream]
-#future proofing for an advanced voicedata with multible audio files.
-#This base version support only 1 audio stream, so return is always index 0. 
-func get_stream_index(_index:int)->int:
-	return 0
+#Return the paths for the audio-streams. In this base version, there is only 1.
+func get_stream_path(_index:int)->String:
+	return main_audio_path
+#Returns how many audiostreams this data has.
+#For this base version, there is only 1.
+func get_num_audio()->int:
+	return 1
 
-func get_start(index:int)->float:
+#Gets the index of the stream to use for the requested index and variant.
+#In this base version there is only 1, so returns index 0.
+func get_stream_index(_index:int, _variant:int)->int:
+	return 0
+#gets the start time in secunds for the given index and variant.
+#variant is not used in this base version. And so only loads from startTimes.
+func get_start(index:int, _variant:int)->float:
 	if index < 0 or index >= startTimes.size():
 		return 0.0
 	else:
 		return startTimes[index]
-	
-func get_stop(index:int)->float:
+		
+#gets the stop time in secunds for the given index and variant.
+#variant is not used in this base version. And so only loads from stopTimes.
+func get_stop(index:int, _variant:int)->float:
 	if index < 0 or index >= stopTimes.size():
 		return 0.0
 	else:
 		return stopTimes[index]
-
-func get_notes(index:int)->String:
+#gets the notes/comments/hints for the given index and variant.
+#variant is not used in this base version. And so only loads from notes.
+func get_notes(index:int, _variant:int)->String:
 	if index < 0 or index >= notes.size():
 		return "missing"
 	else:
