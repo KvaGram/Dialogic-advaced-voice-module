@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4tqww1ttvwhg"]
+
+[ext_resource type="Script" path="res://addons/dialogic_additions/AdvancedVoice/audio_timeline.gd" id="1_5rfhv"]
+
+[node name="timeline_marginbox" type="MarginContainer"]
+offset_right = 1062.0
+offset_bottom = 144.0
+script = ExtResource("1_5rfhv")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 2
+
+[node name="timeline_texture" type="TextureRect" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+expand_mode = 1
