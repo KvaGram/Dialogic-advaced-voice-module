@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4tqww1ttvwhg"]
+[gd_scene load_steps=3 format=3 uid="uid://b4tqww1ttvwhg"]
 
 [ext_resource type="Script" path="res://addons/dialogic_additions/AdvancedVoice/audio_timeline.gd" id="1_5rfhv"]
+[ext_resource type="AudioStream" uid="uid://b886u0bsa1d0" path="res://test-project/149165__ramas26__durys-geros22.mp3" id="2_jf42n"]
 
 [node name="timeline_marginbox" type="MarginContainer"]
 offset_right = 1062.0
@@ -15,3 +16,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 expand_mode = 1
+
+[node name="player" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("2_jf42n")
+
+[connection signal="finished" from="player" to="." method="_on_audio_stop"]
