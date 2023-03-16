@@ -7,7 +7,8 @@ var segmentPanelNode:PackedScene = preload("res://addons/dialogic_additions/Adva
 var audio:AudioStream
 var audio_previews:Array[Texture2D]
 
-
+#data refrences current_resource, but with a Voicedata type-hint
+var data:Voicedata 
 var sel_entry:int = 0
 
 ###TODO: attempt to recreate a preview generator by adding a muted audiobus, and recording it's local volume.
@@ -40,6 +41,7 @@ func _register() -> void:
 func _open_resource(resource:Resource) -> void:
 	# update resource
 	current_resource = (resource as Voicedata)
+	data = current_resource
 	
 	# make sure changes in the ui won't trigger saving
 	loading = true
@@ -97,13 +99,33 @@ func reload_segments():
 #	for c in %boxSegments.get_children():
 #		c.load_segment(current_resource as Voicedata)
 func selectEntry(index:int):
+	if index < 0 or index >= data.startTimes.size():
+		disable_entry_edit()
+		return
+	loading = true
 	sel_entry = index
-	#TODO: populate entry editor
+	%spinIndex.value = sel_entry
+	%spinIndex.editable = true
+	%spinStartTime.value = data.startTimes[sel_entry]
+	%spinStartTime.editable = true
+	%spinStopTime.value = data.stopTimes[sel_entry]
+	%spinStopTime.editable = true
+	%txtNotes.text = data.notes[sel_entry]
+	%txtNotes.editable = true
+	if not %listEntries.is_selected(sel_entry):
+		%listEntries.select(sel_entry, true)
+	loading = false
+func disable_entry_edit():
+	sel_entry = 0
 	loading = true
 	%spinIndex.value = 0
+	%spinIndex.editable = false
 	%spinStartTime.value = 0
+	%spinStartTime.editable = false
 	%spinStopTime.value = 0
+	%spinStopTime.editable = false
 	%txtNotes.text = "Hello world"
+	%txtNotes.editable = false
 	loading = false
 
 func _save_resource() -> void:
@@ -158,7 +180,10 @@ func new_voicedata(path: String) -> void:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	
+	#%LoadGlossaryFile.icon = get_theme_icon('Folder', 'EditorIcons')
+	%btnDeleteSegment.icon = get_theme_icon('Remove', 'EditorIcons')
+	%btnAddSegment.icon = get_theme_icon('Add', 'EditorIcons')
+	%EntrySearch.right_icon = get_theme_icon('Search', 'EditorIcons')
 #	if not plugin_reference:
 #		plugin_reference = find_parent('EditorView').plugin_reference
 #		print("looking for EditorView: " + find_parent("EditorView").to_string())
@@ -178,36 +203,84 @@ func something_changed(fake_argument = "", fake_arg2 = null) -> void:
 func _process(delta):
 	pass
 
-#TODO: EVERYTHING BELOW!
 
 #search for a segment. select first match (text contains) in notes, if any.
-func _on_entry_search_text_changed(new_text):
-	pass # Replace with function body.
+func seach_by_notes_first(new_text):
+	var i:int = 0
+	while i < data.notes.size():
+		if data.notes[i].contains(new_text):
+			selectEntry(i)
+			return
+		i += 1
+	#if none found, do nothing.
 	
 #when searching, goes to the next match after selected, wraps around.
-func _on_entry_search_text_next(new_text):
-	pass # Replace with function body.
+func seach_by_notes_next(new_text):
+	var i:int = sel_entry+1
+	while i < data.notes.size():
+		if data.notes[i].contains(new_text):
+			selectEntry(i)
+			return
+		i += 1
+	#if none found, run first search, effectively wraps around without looping forever.
+	seach_by_notes_first(new_text)
 
 #deletes a segment
 func _on_btn_delete_segment_pressed():
-	pass # Replace with function body.
+	data.startTimes.remove_at(sel_entry)
+	data.stopTimes.remove_at(sel_entry)
+	data.notes.remove_at(sel_entry)
+	%listEntries.remove_item(sel_entry)
+	#after delete
+	var s:int = data.startTimes.size()
+	if s < 1:
+		#TODO: disable entry edit
+		disable_entry_edit()
+		return
+	selectEntry(posmod(sel_entry, data.startTimes.size()))
 
 #adds a segment
 func _on_btn_add_segment_pressed():
-	pass # Replace with function body.
+	data.startTimes.append(0.0)
+	data.stopTimes.append(0.1)
+	data.notes.append("New voice segment")
+	selectEntry(data.startTimes.size()-1)
 
 
 func _on_notes_changed():
-	pass # Replace with function body.
-
-
+	if loading:
+		return
+	data.notes[sel_entry] = %txtNotes.text
+	something_changed()
+	
 func _on_stop_time_changed(value:float):
-	pass # Replace with function body.
+	if loading:
+		return
+	data.stopTimes[sel_entry] = value
+	something_changed()
 
 func _on_start_time_changed(value:float):
-	pass # Replace with function body.
+	if loading:
+		return
+	data.startTimes[sel_entry] = value
+	something_changed()
 
+#moves a voice segment. 
 func _on_index_changed(value:float):
-	pass # Replace with function body.
+	var s:int = data.startTimes.size()
+	if s < 1: #contingency for no data. 
+		return
+	var v = posmod(int(value), s)
+	if loading or v == sel_entry:
+		return
+	%listEntries.move_item(sel_entry, v)
+	#rename entries
+	var i = min(sel_entry, v)
+	while(i < %listEntries.item_count):
+		%listEntries.set_item_text(i, (data.makeEntryShortName(i)))
+		i+=1
+	#update selected
+	sel_entry = v
+	something_changed()
 
 
