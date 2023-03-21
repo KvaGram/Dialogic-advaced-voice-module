@@ -1,3 +1,4 @@
+@tool
 extends MarginContainer
 #how many secunds per pixel
 var testbus:int
@@ -6,8 +7,11 @@ var image:Image
 var _lastT:float #last timestamp
 var _secunds_per_pixel:float
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
+## Called when the node enters the scene tree for the first time.
+#func _ready():
+#	pass
+
+func test():
 	draw_placeholder(%player.stream.get_length(), 1000)
 	#drawing = true
 	play(0)

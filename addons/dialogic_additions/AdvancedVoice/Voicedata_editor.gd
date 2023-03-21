@@ -1,3 +1,7 @@
+##TODO:
+#Use dicts to story region entries, but restrict names to decimals
+#Add a create a split-entry button "did you suddenly need to split this line in two or more?"
+
 @tool
 extends DialogicEditor
 
@@ -9,7 +13,11 @@ var audio_previews:Array[Texture2D]
 
 #data refrences current_resource, but with a Voicedata type-hint
 var data:Voicedata 
-var sel_entry:int = 0
+var sel_key:String = "-1"
+var true_index:int = 0
+
+var valid_text_regex:RegEx
+const valid_text_regex_pattern:String = "[^a-zA-Z1-9\\.]"
 
 ###TODO: attempt to recreate a preview generator by adding a muted audiobus, and recording it's local volume.
 
@@ -78,10 +86,12 @@ func _on_preview_recived(_path:String, preview:Texture2D, _thumbnail_preview:Tex
 func reload_segments():
 	%listEntries.clear()
 	var data:Voicedata = current_resource as Voicedata
-	for i in range(data.startTimes.size()):
-		%listEntries.add_item(data.makeEntryShortName(i))
-	if sel_entry < data.startTimes.size():
-		selectEntry(sel_entry)
+	for k in data.keys:
+		var i:int = %listEntries.add_item(data.makeEntryShortName(k))
+		%listEntries.set_item_metadata(i, k) #stores the key as metadata
+	%listEntries.sort_items_by_text()
+	if sel_key in data.keys:
+		selectEntryKey(sel_key)
 	else:
 		selectEntry(0)
 #	#if there are too many segment panels, remove the excess
@@ -98,25 +108,45 @@ func reload_segments():
 #	#update each segment panel
 #	for c in %boxSegments.get_children():
 #		c.load_segment(current_resource as Voicedata)
-func selectEntry(index:int):
-	if index < 0 or index >= data.startTimes.size():
+
+func selectEntry(i:int):
+	selectEntryKey(%listEntries.get_item_metadata(i))
+	
+
+func selectEntryKey(key:String = "none"):
+	if not key in data.keys:
 		disable_entry_edit()
 		return
+	var i = data.getIndex(key)
 	loading = true
-	sel_entry = index
-	%spinIndex.value = sel_entry
+	sel_key = key
+	var kk = key.split(".")
+	var decimals = kk[1].length if kk.size() > 1 else 0
+	if decimals <= 0:
+		%spinIndex.step = 1
+#	elif decimals == 1:
+	else:
+		%spinIndex.step = 0.1
+#	else:
+#		%spinIndex.step = 0.01
+	
+	%spinIndex.value = float(sel_key)
 	%spinIndex.editable = true
-	%spinStartTime.value = data.startTimes[sel_entry]
+	%spinStartTime.value = data.startTimes[i]
 	%spinStartTime.editable = true
-	%spinStopTime.value = data.stopTimes[sel_entry]
+	%spinStopTime.value = data.stopTimes[i]
 	%spinStopTime.editable = true
-	%txtNotes.text = data.notes[sel_entry]
+	%txtNotes.text = data.notes[i]
 	%txtNotes.editable = true
-	if not %listEntries.is_selected(sel_entry):
-		%listEntries.select(sel_entry, true)
+	
+	if not %listEntries.is_anything_selected() or %listEntries.get_item_metadata(%listEntries.get_selected_items()[0]) != key:
+		for li in range (%listEntries.item_count):
+			if %listEntries.get_item_metadata(li) == key:
+				%listEntries.select(li)
+				break
 	loading = false
 func disable_entry_edit():
-	sel_entry = 0
+	sel_key = "none"
 	loading = true
 	%spinIndex.value = 0
 	%spinIndex.editable = false
@@ -184,6 +214,8 @@ func _ready():
 	%btnDeleteSegment.icon = get_theme_icon('Remove', 'EditorIcons')
 	%btnAddSegment.icon = get_theme_icon('Add', 'EditorIcons')
 	%EntrySearch.right_icon = get_theme_icon('Search', 'EditorIcons')
+	valid_text_regex = RegEx.new()
+	valid_text_regex.compile(valid_text_regex_pattern)
 #	if not plugin_reference:
 #		plugin_reference = find_parent('EditorView').plugin_reference
 #		print("looking for EditorView: " + find_parent("EditorView").to_string())
@@ -206,38 +238,35 @@ func _process(delta):
 
 #search for a segment. select first match (text contains) in notes, if any.
 func seach_by_notes_first(new_text):
-	var i:int = 0
-	while i < data.notes.size():
-		if data.notes[i].contains(new_text):
-			selectEntry(i)
+	var li:int = 0
+	while li < %listEntries.item_count:
+		var k = %listEntries.get_item_metadata(li)
+		if data.notes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
+			selectEntry(li)
 			return
-		i += 1
+		li += 1
 	#if none found, do nothing.
 	
 #when searching, goes to the next match after selected, wraps around.
 func seach_by_notes_next(new_text):
-	var i:int = sel_entry+1
-	while i < data.notes.size():
-		if data.notes[i].contains(new_text):
-			selectEntry(i)
-			return
-		i += 1
+	var li = %listEntries.get_selected_items()[0]+1 if %listEntries.is_anything_selected() else 0
+	while li < %listEntries.item_count:
+		var k = %listEntries.get_item_metadata(li)
+		if data.notes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
+			selectEntry(li)
+		li += 1
 	#if none found, run first search, effectively wraps around without looping forever.
 	seach_by_notes_first(new_text)
 
 #deletes a segment
 func _on_btn_delete_segment_pressed():
-	data.startTimes.remove_at(sel_entry)
-	data.stopTimes.remove_at(sel_entry)
-	data.notes.remove_at(sel_entry)
-	%listEntries.remove_item(sel_entry)
-	#after delete
-	var s:int = data.startTimes.size()
-	if s < 1:
-		#TODO: disable entry edit
-		disable_entry_edit()
-		return
-	selectEntry(posmod(sel_entry, data.startTimes.size()))
+	var i = data.getIndex(sel_key)
+	
+	data.startTimes.remove_at(i)
+	data.stopTimes.remove_at(i)
+	data.notes.remove_at(i)
+	data.keys.remove_at(i)
+	reload_segments()
 
 #adds a segment
 func _on_btn_add_segment_pressed():
@@ -250,37 +279,52 @@ func _on_btn_add_segment_pressed():
 func _on_notes_changed():
 	if loading:
 		return
-	data.notes[sel_entry] = %txtNotes.text
+	data.notes[data.getIndex(sel_key)] = %txtNotes.text
 	something_changed()
 	
 func _on_stop_time_changed(value:float):
 	if loading:
 		return
-	data.stopTimes[sel_entry] = value
+	data.stopTimes[data.getIndex(sel_key)] = value
 	something_changed()
 
 func _on_start_time_changed(value:float):
 	if loading:
 		return
-	data.startTimes[sel_entry] = value
-	something_changed()
-
-#moves a voice segment. 
-func _on_index_changed(value:float):
-	var s:int = data.startTimes.size()
-	if s < 1: #contingency for no data. 
-		return
-	var v = posmod(int(value), s)
-	if loading or v == sel_entry:
-		return
-	%listEntries.move_item(sel_entry, v)
-	#rename entries
-	var i = min(sel_entry, v)
-	while(i < %listEntries.item_count):
-		%listEntries.set_item_text(i, (data.makeEntryShortName(i)))
-		i+=1
-	#update selected
-	sel_entry = v
+	data.startTimes[data.getIndex(sel_key)] = value
 	something_changed()
 
 
+func preview(start:float, stop:float, stream:AudioStream):
+	pass
+
+
+func _on_btn_test_pressed():
+	pass # Replace with function body.
+
+#key entry text changed.
+func _on_entry_key_text_changed(new_text):
+	var c = %entryKey.caret_column
+	#make sure the name is valid. Only base english alpha-numerics. No space or special characters.
+	if valid_text_regex.search(new_text):
+		%entryKey.text = valid_text_regex.sub(new_text, "", true) 
+		if c>0:
+			%entryKey.caret_column -=1
+
+#key name change requested.
+func _on_entry_key_text_submitted(new_text):
+	_on_entry_key_text_changed(new_text) #make sure text is valid.
+	var new_key = %entryKey.text
+	if (new_key in data.keys):
+		#TODO: add rejection alert
+		return
+	#do the change
+	var i = data.getIndex(sel_key)
+	data.keys[i] = new_key
+	for li in range (%listEntries.item_count):
+		if %listEntries.get_item_metadata(li) == sel_key:
+			%listEntries.set_item_metadata(li, new_key)
+			%listEntries.set_item_text(li, data.makeEntryShortName(new_key))
+	sel_key = new_key
+	something_changed()
+	

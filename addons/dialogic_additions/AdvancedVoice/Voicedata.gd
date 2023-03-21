@@ -4,10 +4,12 @@ class_name Voicedata
 
 # Packages audiofile for voiceover with an index of dialog lines.
 @export_file("*.mp3", "*.vaw", "*.ogg") var main_audio_path:String = ""
-@export var startTimes : Array[float]
-@export var stopTimes : Array[float]
-@export var notes : Array[String]
-@export var display_name : String
+@export var startTimes : Array[float] #Data, time in secunds where a voice segment begins
+@export var stopTimes : Array[float] #Data, time in secunds where a voice segment ends
+@export var notes : Array[String] #Meta, notes on what a voice segments contains, to show in editor UIs.
+@export var keys : Array[String] #index, decimal number in string, what a segment is 'named'.
+@export var display_name : String #meta, name to show in editor UIs.
+
 
 
 
@@ -18,9 +20,16 @@ class_name Voicedata
 func _to_string() -> String:
 	return "[{name}:{id}]".format({"name":get_voicedata_name(), "id":get_instance_id()})
 
-func makeEntryShortName(index:int)->String:
-	return "%03d - [%6.1f-%-6.1f] %s" % [index, startTimes[index], stopTimes[index], (notes[index] if len(notes[index]) <= 20 else notes[index].substr(0,18) + "..")]
+func getIndex(key:String)->int:
+	return keys.find(key)
+
+func makeEntryShortName(key:String)->String:
+	var index = getIndex(key)
+	if index < 0:
+		return "%03d - missing" % [key]
+	return "%03d - [%6.1f-%-6.1f] %s" % [key, startTimes[index], stopTimes[index], (notes[index] if len(notes[index]) <= 20 else notes[index].substr(0,18) + "..")]
 	
+
 
 func _hide_script_from_inspector() -> bool:
 	return true
