@@ -121,7 +121,7 @@ func selectEntry(i:int):
 	selectEntryKey(key)
 	
 func getSelIndex()->int:
-	return -1 if %listEntries.is_anything_selected() else %listEntries.get_selected_items()[0]
+	return -1 if not %listEntries.is_anything_selected() else %listEntries.get_selected_items()[0]
 
 func selectEntryKey(key:String = ""):
 	if not key in data.keys:
@@ -139,7 +139,7 @@ func selectEntryKey(key:String = ""):
 		return
 	loading = true
 	sel_key = key
-
+	
 	%entryKey.text = key
 	%entryKey.editable = true
 	%spinStartTime.value = data.startTimes[i]
@@ -151,6 +151,14 @@ func selectEntryKey(key:String = ""):
 	
 	if keys_local[getSelIndex()] != key:
 		%listEntries.select(keys_local.find(key))
+	if audio:
+		%spinStartTime.max_value = audio.get_length()-0.1
+		%spinStartTime.min_value = 0
+		%spinStopTime.max_value  = audio.get_length()
+		%spinStopTime.min_value = max(0.1, %spinStartTime.value+0.1)
+	else:
+		print("Please load an audiofile")
+	
 	loading = false
 func disable_entry_edit():
 	sel_key = ""
@@ -292,16 +300,15 @@ func _on_btn_add_segment_pressed():
 	data.keys.append(key)
 	
 	#adding to list in editor
-	var i:int = %listEntries.add_item(data.makeEntryShortName(key))
-	%listEntries.set_item_metadata(i, key) #stores the key as metadata
+	%listEntries.add_item(data.makeEntryShortName(key))
+	keys_local.append(key)
 	selectEntryKey(key)
 
 func _on_rename_key(new_key):
 	var i = data.getIndex(sel_key)
 	var li = getSelIndex()
-	data.keys.append(new_key)
-	keys_local.append(new_key)
-	%listEntries.set_item_text(li, data.makeEntryShortName(new_key))
+	data.keys[i] = new_key
+	keys_local[li] = new_key
 	sel_key = new_key
 	something_changed()
 
@@ -320,6 +327,7 @@ func _on_stop_time_changed(value:float):
 func _on_start_time_changed(value:float):
 	if loading:
 		return
+	%spinStopTime.min_value = max(0.1, %spinStartTime.value+0.1) #Stoptime must start after starttime
 	data.startTimes[data.getIndex(sel_key)] = value
 	something_changed()
 
