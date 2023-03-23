@@ -17,7 +17,7 @@ func _recognize(resource: Resource) -> bool:
 
 # Save the resource
 func _save(resource: Resource, path: String = '', flags: int = 0):
-	print("saving resource %s to path %s"%[resource, path])
+	#print("saving resource %s to path %s"%[resource, path])
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	var result := var_to_str(inst_to_dict(resource))
 	file.store_string(result)

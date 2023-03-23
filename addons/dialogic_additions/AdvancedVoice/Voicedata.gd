@@ -26,8 +26,8 @@ func getIndex(key:String)->int:
 func makeEntryShortName(key:String)->String:
 	var index = getIndex(key)
 	if index < 0:
-		return "%03d - missing" % [key]
-	return "%03d - [%6.1f-%-6.1f] %s" % [key, startTimes[index], stopTimes[index], (notes[index] if len(notes[index]) <= 20 else notes[index].substr(0,18) + "..")]
+		return "%03s - missing" % [key]
+	return "%03s - [%6.1f-%-6.1f] %s" % [key, startTimes[index], stopTimes[index], (notes[index] if len(notes[index]) <= 20 else notes[index].substr(0,18) + "..")]
 	
 
 

@@ -15,9 +15,10 @@ var audio_previews:Array[Texture2D]
 var data:Voicedata 
 var sel_key:String = "-1"
 var true_index:int = 0
+var keys_local:Array[String] = [] #keys in order they appear in %listEntries
 
 var valid_text_regex:RegEx
-const valid_text_regex_pattern:String = "[^a-zA-Z1-9\\.]"
+const valid_text_regex_pattern:String = "[^A-Z1-9\\.]"
 
 ###TODO: attempt to recreate a preview generator by adding a muted audiobus, and recording it's local volume.
 
@@ -85,10 +86,12 @@ func _on_preview_recived(_path:String, preview:Texture2D, _thumbnail_preview:Tex
 #load_segment grabs the desired data using the child index under %boxSegments
 func reload_segments():
 	%listEntries.clear()
+	keys_local.clear()
 	var data:Voicedata = current_resource as Voicedata
 	for k in data.keys:
 		var i:int = %listEntries.add_item(data.makeEntryShortName(k))
-		%listEntries.set_item_metadata(i, k) #stores the key as metadata
+		keys_local.append(k) #alternative to using metadata
+		#%listEntries.set_item_metadata(i, k) #stores the key as metadata
 	%listEntries.sort_items_by_text()
 	if sel_key in data.keys:
 		selectEntryKey(sel_key)
@@ -110,28 +113,35 @@ func reload_segments():
 #		c.load_segment(current_resource as Voicedata)
 
 func selectEntry(i:int):
-	selectEntryKey(%listEntries.get_item_metadata(i))
+	var key = keys_local[i] if i < keys_local.size() else ""
+	#var key = %listEntries.get_item_metadata(i)
+	if key.length() < 1:
+		disable_entry_edit()
+		return
+	selectEntryKey(key)
 	
+func getSelIndex()->int:
+	return -1 if %listEntries.is_anything_selected() else %listEntries.get_selected_items()[0]
 
-func selectEntryKey(key:String = "none"):
+func selectEntryKey(key:String = ""):
 	if not key in data.keys:
 		disable_entry_edit()
 		return
 	var i = data.getIndex(key)
+	var li = keys_local.find(key)
+	if i < 0:
+		print("voice segment %s not found on file"%[i])
+		disable_entry_edit()
+		return
+	if li < 0:
+		printerr("voice segment %s found on file, but not editor. This should not happen"%[li])
+		disable_entry_edit()
+		return
 	loading = true
 	sel_key = key
-	var kk = key.split(".")
-	var decimals = kk[1].length if kk.size() > 1 else 0
-	if decimals <= 0:
-		%spinIndex.step = 1
-#	elif decimals == 1:
-	else:
-		%spinIndex.step = 0.1
-#	else:
-#		%spinIndex.step = 0.01
-	
-	%spinIndex.value = float(sel_key)
-	%spinIndex.editable = true
+
+	%entryKey.text = key
+	%entryKey.editable = true
 	%spinStartTime.value = data.startTimes[i]
 	%spinStartTime.editable = true
 	%spinStopTime.value = data.stopTimes[i]
@@ -139,17 +149,14 @@ func selectEntryKey(key:String = "none"):
 	%txtNotes.text = data.notes[i]
 	%txtNotes.editable = true
 	
-	if not %listEntries.is_anything_selected() or %listEntries.get_item_metadata(%listEntries.get_selected_items()[0]) != key:
-		for li in range (%listEntries.item_count):
-			if %listEntries.get_item_metadata(li) == key:
-				%listEntries.select(li)
-				break
+	if keys_local[getSelIndex()] != key:
+		%listEntries.select(keys_local.find(key))
 	loading = false
 func disable_entry_edit():
-	sel_key = "none"
+	sel_key = ""
 	loading = true
-	%spinIndex.value = 0
-	%spinIndex.editable = false
+	%entryKey.text = ""
+	%entryKey.editable = false
 	%spinStartTime.value = 0
 	%spinStartTime.editable = false
 	%spinStopTime.value = 0
@@ -197,6 +204,9 @@ func _save_resource() -> void:
 #
 	ResourceSaver.save(current_resource, current_resource.resource_path)
 	current_resource_state = ResourceStates.Saved
+	#refresh list
+	for li in range(keys_local.size()):
+		%listEntries.set_item_text(li, data.makeEntryShortName(keys_local[li]))
 
 func new_voicedata(path: String) -> void:
 	var resource := Voicedata.new()
@@ -270,11 +280,30 @@ func _on_btn_delete_segment_pressed():
 
 #adds a segment
 func _on_btn_add_segment_pressed():
+	#generate key name
+	var ki = 0
+	while str(ki) in data.keys:
+		ki += 1
+	var key:String = str(ki)
+	#creating data
 	data.startTimes.append(0.0)
 	data.stopTimes.append(0.1)
 	data.notes.append("New voice segment")
-	selectEntry(data.startTimes.size()-1)
+	data.keys.append(key)
+	
+	#adding to list in editor
+	var i:int = %listEntries.add_item(data.makeEntryShortName(key))
+	%listEntries.set_item_metadata(i, key) #stores the key as metadata
+	selectEntryKey(key)
 
+func _on_rename_key(new_key):
+	var i = data.getIndex(sel_key)
+	var li = getSelIndex()
+	data.keys.append(new_key)
+	keys_local.append(new_key)
+	%listEntries.set_item_text(li, data.makeEntryShortName(new_key))
+	sel_key = new_key
+	something_changed()
 
 func _on_notes_changed():
 	if loading:
@@ -304,27 +333,25 @@ func _on_btn_test_pressed():
 
 #key entry text changed.
 func _on_entry_key_text_changed(new_text):
-	var c = %entryKey.caret_column
-	#make sure the name is valid. Only base english alpha-numerics. No space or special characters.
-	if valid_text_regex.search(new_text):
-		%entryKey.text = valid_text_regex.sub(new_text, "", true) 
-		if c>0:
-			%entryKey.caret_column -=1
+	var c = %entryKey.caret_column #Location of the caret, or "text cursor"
+	#make sure the name is valid. Only upper-case base english alpha-numerics. No space or special characters.
+	new_text = new_text.to_upper() #converts to upper case
+	if valid_text_regex.search(new_text): #seraches for other illigal characters
+		new_text = valid_text_regex.sub(new_text, "", true) #removes illigal characters
+	if %entryKey.text != new_text: #if changes are needed
+		c += new_text.length() - %entryKey.text.length() #move caret if neccesary
+		%entryKey.text = new_text
+		%entryKey.caret_column = c
 
 #key name change requested.
 func _on_entry_key_text_submitted(new_text):
+	if new_text.length() < 1:
+		return
 	_on_entry_key_text_changed(new_text) #make sure text is valid.
 	var new_key = %entryKey.text
 	if (new_key in data.keys):
 		#TODO: add rejection alert
 		return
 	#do the change
-	var i = data.getIndex(sel_key)
-	data.keys[i] = new_key
-	for li in range (%listEntries.item_count):
-		if %listEntries.get_item_metadata(li) == sel_key:
-			%listEntries.set_item_metadata(li, new_key)
-			%listEntries.set_item_text(li, data.makeEntryShortName(new_key))
-	sel_key = new_key
-	something_changed()
+	_on_rename_key(new_key)
 	
