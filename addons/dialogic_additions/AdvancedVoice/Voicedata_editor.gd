@@ -54,6 +54,7 @@ func _open_resource(resource:Resource) -> void:
 	
 	# make sure changes in the ui won't trigger saving
 	loading = true
+	audio = load(data.main_audio_path)
 	reload_segments()
 	
 	#maybe todo: add support for multible audiostreams
@@ -87,6 +88,10 @@ func _on_preview_recived(_path:String, preview:Texture2D, _thumbnail_preview:Tex
 func reload_segments():
 	%listEntries.clear()
 	keys_local.clear()
+	if not data:
+		%FilePickerAudio.set_value("")
+		return
+	%FilePickerAudio.set_value(data.main_audio_path)
 	var data:Voicedata = current_resource as Voicedata
 	for k in data.keys:
 		var i:int = %listEntries.add_item(data.makeEntryShortName(k))
@@ -150,7 +155,7 @@ func selectEntryKey(key:String = ""):
 	%txtNotes.editable = true
 	
 	if keys_local[getSelIndex()] != key:
-		%listEntries.select(keys_local.find(key))
+		%listEntries.select(li)
 	if audio:
 		%spinStartTime.max_value = audio.get_length()-0.1
 		%spinStartTime.min_value = 0
@@ -308,8 +313,9 @@ func _on_rename_key(new_key):
 	var i = data.getIndex(sel_key)
 	var li = getSelIndex()
 	data.keys[i] = new_key
-	keys_local[li] = new_key
+	#keys_local[li] = new_key
 	sel_key = new_key
+	reload_segments()
 	something_changed()
 
 func _on_notes_changed():
@@ -362,4 +368,9 @@ func _on_entry_key_text_submitted(new_text):
 		return
 	#do the change
 	_on_rename_key(new_key)
+	
+func _on_load_audio(_p_name, value):
+	data.main_audio_path = value
+	audio = load(value)
+	something_changed()
 	
