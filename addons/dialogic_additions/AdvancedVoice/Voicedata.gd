@@ -55,29 +55,47 @@ func get_stream_path(_index:int)->String:
 func get_num_audio()->int:
 	return 1
 
-#Gets the index of the stream to use for the requested index and variant.
-#In this base version there is only 1, so returns index 0.
-func get_stream_index(_index:int, _variant:int)->int:
-	return 0
-#gets the start time in secunds for the given index and variant.
-#variant is not used in this base version. And so only loads from startTimes.
-func get_start(index:int, _variant:int)->float:
-	if index < 0 or index >= startTimes.size():
-		return 0.0
-	else:
-		return startTimes[index]
-		
-#gets the stop time in secunds for the given index and variant.
-#variant is not used in this base version. And so only loads from stopTimes.
-func get_stop(index:int, _variant:int)->float:
-	if index < 0 or index >= stopTimes.size():
-		return 0.0
-	else:
-		return stopTimes[index]
-#gets the notes/comments/hints for the given index and variant.
-#variant is not used in this base version. And so only loads from notes.
-func get_notes(index:int, _variant:int)->String:
-	if index < 0 or index >= notes.size():
+func get_start(key:String)->float:
+	var i = keys.find(key)
+	if i < 0:
+		return -1
+	return startTimes[i]
+
+func get_stop(key:String)->float:
+	var i = keys.find(key)
+	if i < 0:
+		return -1
+	return stopTimes[i]
+
+func get_notes(key:String)->String:
+	var i = keys.find(key)
+	if i < 0:
 		return "missing"
-	else:
-		return notes[index]
+	return notes[i]
+
+##Gets the index of the stream to use for the requested index and variant.
+##In this base version there is only 1, so returns index 0.
+#func get_stream_index(_index:int, _variant:int)->int:
+#	return 0
+##gets the start time in secunds for the given index and variant.
+##variant is not used in this base version. And so only loads from startTimes.
+#func get_start(index:int, _variant:int)->float:
+#	if index < 0 or index >= startTimes.size():
+#		return 0.0
+#	else:
+#		return startTimes[index]
+#
+##gets the stop time in secunds for the given index and variant.
+##variant is not used in this base version. And so only loads from stopTimes.
+#func get_stop(index:int, _variant:int)->float:
+#	if index < 0 or index >= stopTimes.size():
+#		return 0.0
+#	else:
+#		return stopTimes[index]
+##gets the notes/comments/hints for the given index and variant.
+##variant is not used in this base version. And so only loads from notes.
+#func get_notes(index:int, _variant:int)->String:
+#	if index < 0 or index >= notes.size():
+#		return "missing"
+#	else:
+#		return notes[index]

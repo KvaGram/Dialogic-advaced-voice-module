@@ -6,15 +6,16 @@ var drawing:bool = false
 var image:Image
 var _lastT:float #last timestamp
 var _secunds_per_pixel:float
+var stopT:float
 
-## Called when the node enters the scene tree for the first time.
-#func _ready():
-#	pass
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	draw_placeholder(100, 400)
 
 func test():
 	draw_placeholder(%player.stream.get_length(), 1000)
 	#drawing = true
-	play(0)
+	play(0, 20)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -30,10 +31,17 @@ func _process(delta):
 		image.fill_rect(Rect2i(xpos, 100, length, r), Color.WHITE)
 		_lastT = p
 		%timeline_texture.texture = ImageTexture.create_from_image(image)
+		if p > stopT:
+			%player.stop()
 
-func play(time:float):
-	_lastT = time
-	%player.play(time)
+func set_stream(stream:AudioStream):
+	%player.stream = stream
+	draw_placeholder(stream.get_length(), get_rect().size.x)
+
+func play(start:float, stop:float):
+	_lastT = start
+	stopT = stop
+	%player.play(start)
 
 # draws a placeholder graphic for a length secunds of audio. one dot every 10 secunds
 func draw_placeholder(time_length:float, pixel_width:int):

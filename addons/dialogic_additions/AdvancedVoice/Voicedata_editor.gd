@@ -9,7 +9,7 @@ var plugin_reference:EditorPlugin
 var loading:bool #safety flag, prevents accidental saving
 var segmentPanelNode:PackedScene = preload("res://addons/dialogic_additions/AdvancedVoice/VoiceSegmentPanel.tscn")
 var audio:AudioStream
-var audio_previews:Array[Texture2D]
+#var audio_previews:Array[Texture2D]
 
 #data refrences current_resource, but with a Voicedata type-hint
 var data:Voicedata 
@@ -55,6 +55,9 @@ func _open_resource(resource:Resource) -> void:
 	# make sure changes in the ui won't trigger saving
 	loading = true
 	audio = load(data.main_audio_path)
+	var n:Control
+	if(audio):
+		%timeline.draw_placeholder(audio.get_length(), %timeline.get_rect().size.x)
 	reload_segments()
 	
 	#maybe todo: add support for multible audiostreams
@@ -68,9 +71,9 @@ func _open_resource(resource:Resource) -> void:
 	loading = false
 
 	#maybe todo: add support for multible audiostreams
-func _on_preview_recived(_path:String, preview:Texture2D, _thumbnail_preview:Texture2D, _userdata):
-	audio_previews[0] = preview
-	%timeline_texture.texture = preview
+#func _on_preview_recived(_path:String, preview:Texture2D, _thumbnail_preview:Texture2D, _userdata):
+#	audio_previews[0] = preview
+#	%timeline_texture.texture = preview
 
 #func on_move_segment(old_i, new_i):
 #	%boxSegments.move_child(%boxSegments.get_child(old_i), new_i)
@@ -337,13 +340,20 @@ func _on_start_time_changed(value:float):
 	data.startTimes[data.getIndex(sel_key)] = value
 	something_changed()
 
-
-func preview(start:float, stop:float, stream:AudioStream):
-	pass
-
-
 func _on_btn_test_pressed():
-	pass # Replace with function body.
+	var li = getSelIndex()
+	var key = keys_local[li]
+	if key.is_empty():
+		return
+	if not audio:
+		print("Please uh please load an audiofile before trying to play it")
+		return
+	var start = data.get_start(key)
+	var stop  = data.get_stop (key)
+	if start < 0 or stop < 0:
+		printerr("Cannot test-play. voice audio segment not found.")
+		return
+	%timeline.play(start, stop)
 
 #key entry text changed.
 func _on_entry_key_text_changed(new_text):
@@ -372,5 +382,7 @@ func _on_entry_key_text_submitted(new_text):
 func _on_load_audio(_p_name, value):
 	data.main_audio_path = value
 	audio = load(value)
+	if(audio):
+		%timeline.draw_placeholder(audio.get_length(), %timeline.get_rect().size.x)
 	something_changed()
 	
