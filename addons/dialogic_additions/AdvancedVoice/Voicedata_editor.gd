@@ -58,7 +58,7 @@ func _open_resource(resource:Resource) -> void:
 	var n:Control
 	if(audio):
 		%timeline.draw_placeholder(audio.get_length(), %timeline.get_rect().size.x)
-	reload_segments()
+	reload_list()
 	
 	#maybe todo: add support for multible audiostreams
 	#plugin_reference.get_editor_interface().get_resource_previewer().queue_resource_preview(current_resource.get_stream_path(0),self, &"_on_preview_recived",0)
@@ -78,7 +78,7 @@ func _open_resource(resource:Resource) -> void:
 #func on_move_segment(old_i, new_i):
 #	%boxSegments.move_child(%boxSegments.get_child(old_i), new_i)
 #	#Segments must be reloaded to refrect their new data
-#	reload_segments()
+#	reload_list()
 #	something_changed()
 
 #func on_new_segment():
@@ -86,39 +86,29 @@ func _open_resource(resource:Resource) -> void:
 #	%boxSegments.add_child(c)
 #	something_changed()
 
-#updates the datafields for all the segment panels.
-#load_segment grabs the desired data using the child index under %boxSegments
-func reload_segments():
+#clears and reloads 
+func reload_list():
 	%listEntries.clear()
 	keys_local.clear()
+	var data:Voicedata = current_resource as Voicedata
 	if not data:
 		%FilePickerAudio.set_value("")
 		return
 	%FilePickerAudio.set_value(data.main_audio_path)
-	var data:Voicedata = current_resource as Voicedata
-	for k in data.keys:
+	keys_local = data.keys.duplicate()
+	keys_local.sort()
+	for k in keys_local:
 		var i:int = %listEntries.add_item(data.makeEntryShortName(k))
-		keys_local.append(k) #alternative to using metadata
-		#%listEntries.set_item_metadata(i, k) #stores the key as metadata
-	%listEntries.sort_items_by_text()
-	if sel_key in data.keys:
+	if sel_key in keys_local:
 		selectEntryKey(sel_key)
 	else:
 		selectEntry(0)
-#	#if there are too many segment panels, remove the excess
-#	#this may happen during loading or when removing a segment
-#	while %boxSegments.get_child_count() > l:
-#		var c = %boxSegments.get_child(-1)
-#		%boxSegments.remove_child(c)
-#		c.queue_free()
-#	#If there are too few segment panels, add new ones.
-#	#This may happen during loading, or when adding a segment
-#	while %boxSegments.get_child_count() < l:
-#		var c = segmentPanelNode.instantiate()
-#		%boxSegments.add_child(c)
-#	#update each segment panel
-#	for c in %boxSegments.get_children():
-#		c.load_segment(current_resource as Voicedata)
+
+#refresh names of items in listEntries
+func refresh_list():
+	for i in range(keys_local.size()):
+		var k = keys_local[i]
+		%listEntries.set_item_text(i, data.makeEntryShortName(k))
 
 func selectEntry(i:int):
 	var key = keys_local[i] if i < keys_local.size() else ""
@@ -132,7 +122,7 @@ func getSelIndex()->int:
 	return -1 if not %listEntries.is_anything_selected() else %listEntries.get_selected_items()[0]
 
 func selectEntryKey(key:String = ""):
-	if not key in data.keys:
+	if not key in keys_local:
 		disable_entry_edit()
 		return
 	var i = data.getIndex(key)
@@ -255,6 +245,7 @@ func something_changed(fake_argument = "", fake_arg2 = null) -> void:
 	if not loading:
 		current_resource_state = ResourceStates.Unsaved
 		editors_manager.save_current_resource() #TODO, should this happen?
+	refresh_list()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -264,9 +255,12 @@ func _process(delta):
 
 #search for a segment. select first match (text contains) in notes, if any.
 func seach_by_notes_first(new_text):
+	#print ("seach_by_notes_first")
+	#print( "%listEntries.item_count ", %listEntries.item_count)
 	var li:int = 0
 	while li < %listEntries.item_count:
-		var k = %listEntries.get_item_metadata(li)
+		#print("seach_by_notes_first - scanning index ", li, " for ", new_text)
+		var k = keys_local[li]
 		if data.notes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
 			selectEntry(li)
 			return
@@ -275,11 +269,13 @@ func seach_by_notes_first(new_text):
 	
 #when searching, goes to the next match after selected, wraps around.
 func seach_by_notes_next(new_text):
-	var li = %listEntries.get_selected_items()[0]+1 if %listEntries.is_anything_selected() else 0
+	var li = getSelIndex() + 1
 	while li < %listEntries.item_count:
-		var k = %listEntries.get_item_metadata(li)
+		#print("seach_by_notes_next - scanning index ", li, " for ", new_text)
+		var k = keys_local[li]
 		if data.notes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
 			selectEntry(li)
+			return
 		li += 1
 	#if none found, run first search, effectively wraps around without looping forever.
 	seach_by_notes_first(new_text)
@@ -292,7 +288,7 @@ func _on_btn_delete_segment_pressed():
 	data.stopTimes.remove_at(i)
 	data.notes.remove_at(i)
 	data.keys.remove_at(i)
-	reload_segments()
+	reload_list()
 
 #adds a segment
 func _on_btn_add_segment_pressed():
@@ -318,7 +314,7 @@ func _on_rename_key(new_key):
 	data.keys[i] = new_key
 	#keys_local[li] = new_key
 	sel_key = new_key
-	reload_segments()
+	refresh_list()
 	something_changed()
 
 func _on_notes_changed():
