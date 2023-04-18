@@ -8,6 +8,9 @@ var _lastT:float #last timestamp
 var _secunds_per_pixel:float
 var stopT:float
 
+var base_scale:float #scale to fit whole timeline image in editor window
+var scale_value:int #indicates viewscale in a power of 2. Where values 0, 1, 2, 3 is x1, x2, x4, x8 etc.
+var focusX:float #
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	draw_placeholder(100, 400)
@@ -43,6 +46,8 @@ func play(start:float, stop:float):
 	stopT = stop
 	%player.play(start)
 
+
+#TODO experiment with other ways of determining pixel width Maybe 16x pixel width
 # draws a placeholder graphic for a length secunds of audio. one dot every 10 secunds
 func draw_placeholder(time_length:float, pixel_width:int):
 	#create image with 8-bit grayscale format
@@ -61,7 +66,39 @@ func draw_placeholder(time_length:float, pixel_width:int):
 		p+=step
 		%timeline_texture.texture = ImageTexture.create_from_image(image)
 		#print("pixel = %s"%[p])
+	var rectx = %boxTimeline.get_rect().size.x
+	if rectx <=0:
+		base_scale = 1
+	else:
+		base_scale = rectx / pixel_width
+		print("base_scale = %%boxTimeline.get_rect().size.x / pixel_width = %s / %s = %s"%[%boxTimeline.get_rect().size.x, pixel_width, base_scale])
+	scale_value = 0
+	refreshScale()
 		
 func _on_audio_stop():
 	drawing = false
 	%timeline_texture.texture = ImageTexture.create_from_image(image)
+func refreshScale():
+	var s = base_scale * pow(2, scale_value)
+	print("refreshing scale. Base is %s, value is %s. 2 pow(scale_value) = %s, resulting scale: %s"%[base_scale, scale_value, pow(2, scale_value), s])
+	%timeline_texture.scale = Vector2(s, 1)
+	
+
+
+func changeScale(change):
+	setScale(scale_value + change)
+func setScale(value):
+	var old_x = %scrollX.value / %scrollX.max_value
+	scale_value = clamp(value, 0, 10)
+	%txtScale.text = str(scale_value)
+	refreshScale()
+	var rectx = %boxTimeline.get_rect().size.x
+	var timex = %timeline_texture.get_rect().size.x
+	var space = maxi(timex - rectx, 0)
+	print("timeline X ", timex, "rect X ", rectx, "space ", space)
+	%scrollX.max_value = space
+	%scrollX.value = old_x*space
+	setTimelineScroll(%scrollX.value)
+	
+func setTimelineScroll(value):
+	%timeline_texture.position.x = -value

@@ -379,6 +379,6 @@ func _on_load_audio(_p_name, value):
 	data.main_audio_path = value
 	audio = load(value)
 	if(audio):
-		%timeline.draw_placeholder(audio.get_length(), %timeline.get_rect().size.x)
+		%timeline.draw_placeholder(audio.get_length())#, %timeline.get_rect().size.x)
 	something_changed()
 	
