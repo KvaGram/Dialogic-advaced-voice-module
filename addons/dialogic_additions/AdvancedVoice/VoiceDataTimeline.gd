@@ -17,11 +17,14 @@ var scale_value:int #indicates viewscale in a power of 2. Where values 0, 1, 2, 
 var startT:int = 0 # beginning of the visible timeline, in decisecunds
 var pageT:int = 200 #how much of the timeline is shown on screen
 
+var marker:Vector2i
+
 var doRedraw:bool = false
 var redraw_timer:float = 0
 var redraw_time:float = 0.5#minumum wait between drawing the timeline
 
 @onready var scrollTime:HScrollBar = %scrollTime
+@onready var drawlayer:Control = %drawlayer
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -35,6 +38,23 @@ func _ready():
 #	#drawing = true
 #	play(0, 20)
 
+func onDrawmarkers():
+	#test, do remove.
+	drawlayer.draw_circle(Vector2(20, 20), 10, Color.YELLOW)
+	
+	#TODO: convert from datapoint to local pixel x-co-ordinate
+	var start = marker.x
+	var stop = marker.y
+	
+	#TODO - sedocode below
+	
+	#first test if start and/or stop is out of range. If so, do special case for that.
+	
+	#PageT / MaxT gets scale (?). multiply by pixel width.
+	#startT * scale gets offset.
+	#draw yellow horizontal line between start and stop
+	#draw vertical lines: blue for start, red for stop. If playing, also draw green line for current play posision.
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if (%player.playing):
@@ -45,6 +65,7 @@ func _process(delta):
 		var p:int = floori(%player.get_playback_position() * 10)
 		_previewdata[p*2] = l
 		_previewdata[(p*2)+1] = r
+		doRedraw = true
 		
 		if p > _targetT:
 			%player.stop()
@@ -87,8 +108,18 @@ func set_previewdata(val:PackedByteArray):
 func draw_preview():
 	redraw_timer = 0
 	doRedraw = false
+	drawlayer.queue_redraw()
 	var width:int = %boxTimeline.get_rect().size.x
 	var time_width = getStopT() - startT
+	if width < 0:
+		printerr("VoiceDataTimeline has no space to draw")
+		return
+	if time_width < 0:
+		#woops. Something went wrong. Quick! Draw a placeholder, pretend everything is alright! (even though we know it's not D>:} )
+		Image.create(width, 200, false, Image.FORMAT_L8)
+		image.fill(Color.GRAY)
+		%timeline_texture.texture = ImageTexture.create_from_image(image)
+		return
 	if(width >= time_width):
 		_draw_preview_wide(width / time_width)
 	else:
@@ -158,33 +189,6 @@ func _draw_preview_thin(dspp):
 		x += 1
 	%timeline_texture.texture = ImageTexture.create_from_image(image)
 
-#TODO experiment with other ways of determining pixel width Maybe 16x pixel width
-# draws a placeholder graphic for a length secunds of audio. one dot every 10 secunds
-#func draw_placeholder(time_length:float, pixel_width:int):
-#	#create image with 8-bit grayscale format
-#	_secunds_per_pixel = pixel_width / time_length
-#	print(_secunds_per_pixel)
-#	var stepsize = 1
-#	while stepsize * _secunds_per_pixel < 10:
-#		stepsize = stepsize * 60
-#	print("creating image sized %s"%[pixel_width])
-#	image = Image.create(int(pixel_width), 200, false, Image.FORMAT_L8)
-#	image.fill(Color.BLACK)
-#	var step:int = round(stepsize*_secunds_per_pixel)
-#	var p:int = step
-#	while p < pixel_width:
-#		image.fill_rect(Rect2i(p-5,95,10,10),Color.WHITE)
-#		p+=step
-#		%timeline_texture.texture = ImageTexture.create_from_image(image)
-#		#print("pixel = %s"%[p])
-#	var rectx = %boxTimeline.get_rect().size.x
-#	if rectx <=0:
-#		base_scale = 1
-#	else:
-#		base_scale = rectx / pixel_width
-#		print("base_scale = %%boxTimeline.get_rect().size.x / pixel_width = %s / %s = %s"%[%boxTimeline.get_rect().size.x, pixel_width, base_scale])
-#	scale_value = 0
-#	refreshScale()
 		
 func _on_audio_stop():
 	pass
