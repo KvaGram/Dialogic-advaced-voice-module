@@ -5,6 +5,7 @@ var testbus:int
 var drawing:bool = false
 var image:Image
 var _lastT:float #last timestamp
+var _targetT:float
 var _secunds_per_pixel:float
 
 var _previewdata:PackedByteArray
@@ -13,11 +14,13 @@ var base_scale:float #scale to fit whole timeline image in editor window
 var scale_value:int #indicates viewscale in a power of 2. Where values 0, 1, 2, 3 is x1, x2, x4, x8 etc.
 
 var startT:int = 0 # beginning of the visible timeline, in decisecunds
-var stopT:int = 200 # end of the visible timeline
+var pageT:int = 200 #how much of the timeline is shown on screen
 
 var doRedraw:bool = false
 var redraw_timer:float = 0
-var redraw_time:float = 5
+var redraw_time:float = 0.2#minumum wait between drawing the timeline
+
+@onready var scrollTime:HScrollBar = %scrollTime
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -40,7 +43,7 @@ func _process(delta):
 		_previewdata[p*2] = l
 		_previewdata[(p*2)+1] = r
 		
-		if p > stopT:
+		if p > _targetT:
 			%player.stop()
 	if doRedraw:
 		if redraw_timer >= redraw_time:
@@ -48,13 +51,11 @@ func _process(delta):
 func set_stream(stream:AudioStream, previewdata:PackedByteArray):
 	%player.stream = stream
 	set_previewdata(previewdata)
-	startT = 0
-	stopT = floori(stream.get_length() * 10)
-	doRedraw = true
+	setStartPage(0, getMaxT())
 
 func play(start:float, stop:float):
 	_lastT = start
-	stopT = stop
+	_targetT = stop
 	%player.play(start)
 
 func get_previewdata()->PackedByteArray:
@@ -71,7 +72,7 @@ func draw_preview():
 	redraw_timer = 0
 	doRedraw = false
 	var width:int = %boxTimeline.get_rect().size.x
-	var time_width = stopT - startT
+	var time_width = getStopT() - startT
 	if(width >= time_width):
 		_draw_preview_wide(width / time_width)
 	else:
@@ -80,7 +81,7 @@ func draw_preview():
 	
 #ppds pixels per decisecunds, rounded to whole
 func _draw_preview_wide(ppds:int):
-	var width:int = ppds * (stopT - startT) #We leave the texture stretching to the engine
+	var width:int = ppds * (getStopT() - startT) #We leave the texture stretching to the engine
 	var image = Image.create(width, 200, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
 	
@@ -88,7 +89,7 @@ func _draw_preview_wide(ppds:int):
 	var t:int = startT
 	var l:int = 0
 	var r:int = 0
-	while t < stopT:
+	while t < getStopT():
 		l = _previewdata[t*2]
 		r = _previewdata[(t*2)+1]
 		image.fill_rect(Rect2i(x, 0, ppds, 200), Color.BLACK)
@@ -101,7 +102,7 @@ func _draw_preview_wide(ppds:int):
 		
 #dspp decisecunds per pixel, rounded to whole
 func _draw_preview_thin(dspp):
-	var width:int = ceili((stopT - startT)/dspp)
+	var width:int = ceili((getStopT() - startT)/dspp)
 	var image = Image.create(width, 200, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
 	var x:int = 0
@@ -113,7 +114,7 @@ func _draw_preview_thin(dspp):
 		l = 0
 		r = 0
 		t = x * dspp
-		t_t = max(stopT, t + dspp)
+		t_t = max(getStopT(), t + dspp)
 		while t < t_t:
 			l += _previewdata[t*2]
 			r += _previewdata[(t*2)+1]
@@ -169,26 +170,54 @@ func _on_audio_stop():
 #	setScale(scale_value + change)
 	
 #func setScale(value):
-#	var c = startT + (stopT-startT)/2
+#	var c = startT + (getStopT()-startT)/2
 #	scale_value = clamp(value, 0, 10)
 #	var l_max = %player.stream.get_length() * 10
 #	var l = ceili(l_max / pow(2, scale_value))
 #	startT = c - l/2
-#	stopT = startT + l
+#	getStopT() = startT + l
 #	if startT < 0:
-#		stopT -= startT
+#		getStopT() -= startT
 #		startT -= startT
-#	elif stopT > l_max:
-#		startT -= (stopT - l_max)
-#		stopT -= (stopT - l_max)
+#	elif getStopT() > l_max:
+#		startT -= (getStopT() - l_max)
+#		getStopT() -= (getStopT() - l_max)
 #	startT = max(startT, 0)
-#	stopT = min(stopT, l_max)
+#	getStopT() = min(getStopT(), l_max)
 #	draw_preview()
+
+func getMaxT() -> int:
+	return int(%player.stream.get_length() * 10)
+func getStopT() -> int:
+	return min(startT + pageT, getMaxT())
+func getStartT() -> int:
+	return startT
+func getPageT() -> int:
+	return pageT
+
+func setStartPage(start:int, page:int):
+	pageT = clampi(page, 1, getMaxT())
+	startT = clampi(start, 0, getMaxT() - pageT)
+	
+	scrollTime.page = pageT
+	scrollTime.value = startT
+	doRedraw = true
 
 func setStart(value):
 	startT = maxi(value, 0)
 	doRedraw = true
-func setEnd(value):
-	stopT = mini(value, (%player.stream.get_length() * 10))
-	doRedraw = true
-	
+
+func setPagesize(value:int):
+	value = clamp(value, 0, getMaxT())
+	var diff = value - pageT
+	setStartPage(max(startT - diff/2, 0), value)
+
+func _on_btn_minus_pressed():
+	setPagesize(pageT * 2)
+
+func _on_btn_plus_pressed():
+	setPagesize(pageT / 2)
+
+
+func _on_scroll_time_value_changed(value):
+	setStart(int(value))
