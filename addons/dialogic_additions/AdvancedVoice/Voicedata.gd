@@ -9,6 +9,7 @@ class_name Voicedata
 @export var notes : Array[String] #Meta, notes on what a voice segments contains, to show in editor UIs.
 @export var keys : Array[String] #index, decimal number in string, what a segment is 'named'.
 @export var display_name : String #meta, name to show in editor UIs.
+var previewData:PackedByteArray
 
 
 

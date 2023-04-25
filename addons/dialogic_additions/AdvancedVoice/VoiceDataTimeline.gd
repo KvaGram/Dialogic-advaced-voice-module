@@ -1,5 +1,6 @@
 @tool
 extends MarginContainer
+class_name VoiceDataTimeline
 #how many secunds per pixel
 var testbus:int
 var drawing:bool = false
@@ -18,7 +19,7 @@ var pageT:int = 200 #how much of the timeline is shown on screen
 
 var doRedraw:bool = false
 var redraw_timer:float = 0
-var redraw_time:float = 0.2#minumum wait between drawing the timeline
+var redraw_time:float = 0.5#minumum wait between drawing the timeline
 
 @onready var scrollTime:HScrollBar = %scrollTime
 
@@ -37,8 +38,10 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if (%player.playing):
-		var l:int = int( 100 * db_to_linear(AudioServer.get_bus_peak_volume_left_db(0,0)))
-		var r:int = int( 100 * db_to_linear(AudioServer.get_bus_peak_volume_right_db(0,0)))
+		#saving volume of left and right channels.
+		#value is set to minimum of 1, so no data (value 0) can be seperated from silence
+		var l:int = maxi(1, 100 * db_to_linear(AudioServer.get_bus_peak_volume_left_db(0,0)))
+		var r:int = maxi(1, 100 * db_to_linear(AudioServer.get_bus_peak_volume_right_db(0,0)))
 		var p:int = floori(%player.get_playback_position() * 10)
 		_previewdata[p*2] = l
 		_previewdata[(p*2)+1] = r
@@ -48,6 +51,8 @@ func _process(delta):
 	if doRedraw:
 		if redraw_timer >= redraw_time:
 			draw_preview()
+		else:
+			redraw_timer += delta
 func set_stream(stream:AudioStream, previewdata:PackedByteArray):
 	%player.stream = stream
 	set_previewdata(previewdata)
@@ -62,12 +67,23 @@ func get_previewdata()->PackedByteArray:
 	return _previewdata.compress()
 func set_previewdata(val:PackedByteArray):
 	var length = roundi(%player.stream.get_length() * 20) # 2 channels, decisecunds.
+	#if incoming data is empty, make a new packedbytearray
+	if val.size() < 1:
+		_previewdata = PackedByteArray()
+		_previewdata.resize(length)
+		return
+	#if length is a match, go ahead and set it.
 	if val.size() == length:
 		_previewdata = val
-	else:
-		_previewdata = val.decompress(length)
-		
+		return
+	#finally, presume the data is compressed, trust the decompress function to know what to do.
+	_previewdata = val.decompress(length)
+	#It does not matter if the preview is lost or wrong. It will set again during test playback.
+	
 
+#Draw the preview.
+#Will draw wide if there are more pixel width than datapoints (stero decisecunds)
+#will draw thin if there are more datapoints than pixel width
 func draw_preview():
 	redraw_timer = 0
 	doRedraw = false
@@ -78,33 +94,46 @@ func draw_preview():
 	else:
 		_draw_preview_thin(ceili(float(time_width) / width))
 	return
-	
+
+#draw wide. Takes in ppds, pixels per decisecunds, to know how many pixels wide to draw for each datapoint.
 #ppds pixels per decisecunds, rounded to whole
 func _draw_preview_wide(ppds:int):
-	var width:int = ppds * (getStopT() - startT) #We leave the texture stretching to the engine
+	#exact width of the texture is adjusted to allow for any rounding of ppds
+	#resulting texture width may not fit perfectly in timeline_texture, so this element is set to scale the resulting texture.
+	var width:int = ppds * (getStopT() - startT)
+	#image is limited to a grayscale format, with black as silence, and white as volume/data.
 	var image = Image.create(width, 200, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
 	
+	#The time t posision controls what to draw in the drawing-loop, x is incremented by ppds
 	var x:int = 0
 	var t:int = startT
 	var l:int = 0
 	var r:int = 0
 	while t < getStopT():
+		#left chennel is stored in even indecies
 		l = _previewdata[t*2]
+		#right chanel is stored in odd.
 		r = _previewdata[(t*2)+1]
-		image.fill_rect(Rect2i(x, 0, ppds, 200), Color.BLACK)
+		#left channel is drawn in negative Y, right in positive Y
 		image.fill_rect(Rect2i(x, 100-l, ppds, l), Color.WHITE)
 		image.fill_rect(Rect2i(x, 100, ppds, r), Color.WHITE)
-		x += ppds
+		x += ppds 
 		t += 1
 	%timeline_texture.texture = ImageTexture.create_from_image(image)
 		
-		
+
+#draws thin. Takes in dspp decisecundsper pixel, to know how many datapoints makes up one pixel.
 #dspp decisecunds per pixel, rounded to whole
 func _draw_preview_thin(dspp):
+	#exact width of the texture is adjusted to allow for any rounding of dspp
+	#resulting texture width may not fit perfectly in timeline_texture, so this element is set to scale the resulting texture.
 	var width:int = ceili((getStopT() - startT)/dspp)
+	#image is limited to a grayscale format, with black as silence, and white as volume/data.
 	var image = Image.create(width, 200, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
+	
+	#the x posision decides what to draw in the drawing-loop, t is incremented by dspp as values inbetween are averaged.
 	var x:int = 0
 	var t:int = startT
 	var l:int = 0
@@ -116,12 +145,14 @@ func _draw_preview_thin(dspp):
 		t = x * dspp
 		t_t = max(getStopT(), t + dspp)
 		while t < t_t:
+			#left chennel is stored in even indecies
 			l += _previewdata[t*2]
+			#right chanel is stored in odd.
 			r += _previewdata[(t*2)+1]
 			t += 1
 		l = l/dspp
 		r = r/dspp
-		image.fill_rect(Rect2i(x, 0, 1, 200), Color.BLACK)
+		#left channel is drawn in negative Y, right in positive Y
 		image.fill_rect(Rect2i(x, 100-l, 1, l), Color.WHITE)
 		image.fill_rect(Rect2i(x, 100, 1, r), Color.WHITE)
 		x += 1

@@ -7,7 +7,7 @@ extends DialogicEditor
 
 var plugin_reference:EditorPlugin
 var loading:bool #safety flag, prevents accidental saving
-var segmentPanelNode:PackedScene = preload("res://addons/dialogic_additions/AdvancedVoice/VoiceSegmentPanel.tscn")
+#var segmentPanelNode:PackedScene = preload("res://addons/dialogic_additions/AdvancedVoice/VoiceSegmentPanel.tscn")
 var audio:AudioStream
 #var audio_previews:Array[Texture2D]
 
@@ -19,6 +19,8 @@ var keys_local:Array[String] = [] #keys in order they appear in %listEntries
 
 var valid_text_regex:RegEx
 const valid_text_regex_pattern:String = "[^A-Z1-9\\.]"
+
+@onready var timeline:VoiceDataTimeline = %timeline
 
 ###TODO: attempt to recreate a preview generator by adding a muted audiobus, and recording it's local volume.
 
@@ -56,8 +58,9 @@ func _open_resource(resource:Resource) -> void:
 	loading = true
 	audio = load(data.main_audio_path)
 	var n:Control
+	#preview data is a PackedByteArray with two datapoints (stereo) per decisecund of sound
 	if(audio):
-		%timeline.draw_placeholder(audio.get_length(), %timeline.get_rect().size.x)
+		timeline.set_stream(audio, data.previewData)
 	reload_list()
 	
 	#maybe todo: add support for multible audiostreams
@@ -379,6 +382,6 @@ func _on_load_audio(_p_name, value):
 	data.main_audio_path = value
 	audio = load(value)
 	if(audio):
-		%timeline.draw_placeholder(audio.get_length())#, %timeline.get_rect().size.x)
+		timeline.set_stream(audio, PackedByteArray())
 	something_changed()
 	
