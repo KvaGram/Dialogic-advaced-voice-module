@@ -23,6 +23,7 @@ var redraw_time:float = 0.5#minumum wait between drawing the timeline
 
 @onready var scrollTime:HScrollBar = %scrollTime
 @onready var drawlayer:Control = %drawlayer
+@onready var timeline:TextureRect = %timeline_texture
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -36,7 +37,57 @@ func _ready():
 #	#drawing = true
 #	play(0, 20)
 
-func onDrawmarkers():
+func _onDrawTimeline():
+	var width:int = %boxTimeline.get_rect().size.x
+	timeline.draw_rect(Rect2(0, 0, width, 200), Color.DARK_GRAY, true)
+	if(width >= pageT):
+		_onDrawTimelineWide(float(width) / pageT)
+	else:
+		_onDrawTimelineThin(float(pageT) / width)
+	return
+
+func _onDrawTimelineWide(ppds:float):
+	var x:float = 0
+	var l:int = 0
+	var r:int = 0
+	var t:int = startT
+	var p_l:int = 0
+	var p_r:int = 0
+	while t < getStopT():
+		#left chennel is stored in even indecies
+		l = _previewdata[t*2]
+		#right chanel is stored in odd.
+		r = _previewdata[(t*2)+1]
+		timeline.draw_rect(Rect2(floori(x), 100-l, ceili(ppds), l), Color.ALICE_BLUE, true)
+		timeline.draw_rect(Rect2(floori(x), 100, ceili(ppds), r), Color.ALICE_BLUE, true)
+		x += ppds 
+		t += 1
+func _onDrawTimelineThin(dspp:float):
+	var x:int = 0
+	var t:int = startT
+	var l:int = 0
+	var r:int = 0
+	var t_t:int = 0
+	var width:int = %boxTimeline.get_rect().size.x
+	while x < width:
+		l = 0
+		r = 0
+		t = x * dspp
+		t_t = max(getStopT(), t + dspp)
+		while t < t_t:
+			#left chennel is stored in even indecies
+			l += _previewdata[t*2]
+			#right chanel is stored in odd.
+			r += _previewdata[(t*2)+1]
+			t += 1
+		l = l/dspp
+		r = r/dspp
+		#left channel is drawn in negative Y, right in positive Y
+		timeline.draw_rect(Rect2i(x, 100-l, 1, l), Color.ALICE_BLUE, true)
+		timeline.draw_rect(Rect2i(x, 100, 1, r), Color.ALICE_BLUE, true)
+		x += 1
+
+func _onDrawmarkers():
 	var x:float
 	var y:float
 	var s:float = %boxTimeline.get_rect().size.x / pageT
@@ -103,10 +154,12 @@ func _process(delta):
 		if %player.get_playback_position() > _targetT:
 			%player.stop()
 	if doRedraw:
-		if redraw_timer >= redraw_time:
-			draw_preview()
-		else:
-			redraw_timer += delta
+		timeline.queue_redraw()
+		doRedraw = false
+#		if redraw_timer >= redraw_time:
+#			draw_preview()
+#		else:
+#			redraw_timer += delta
 func set_stream(stream:AudioStream, previewdata:PackedByteArray):
 	#TODO warn user if clip length is less than 1 secund.
 	%player.stream = stream
@@ -140,8 +193,13 @@ func set_previewdata(val:PackedByteArray):
 #Will draw wide if there are more pixel width than datapoints (stero decisecunds)
 #will draw thin if there are more datapoints than pixel width
 func draw_preview():
+	#test override
+	timeline.queue_redraw()
+	
 	redraw_timer = 0
 	doRedraw = false
+	return
+	
 	var width:int = %boxTimeline.get_rect().size.x
 	if width < 0:
 		printerr("VoiceDataTimeline has no space to draw")
