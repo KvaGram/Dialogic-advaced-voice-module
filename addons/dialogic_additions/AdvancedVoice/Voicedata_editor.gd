@@ -141,11 +141,15 @@ func selectEntryKey(key:String = ""):
 	loading = true
 	sel_key = key
 	
+	print("data start[i] ", data.startTimes[i])
+	
 	%entryKey.text = key
 	%entryKey.editable = true
 	%spinStartTime.value = data.startTimes[i]
+	timeline.selectedmarker.x = data.startTimes[i]
 	%spinStartTime.editable = true
 	%spinStopTime.value = data.stopTimes[i]
+	timeline.selectedmarker.y = data.stopTimes[i]
 	%spinStopTime.editable = true
 	%txtNotes.text = data.notes[i]
 	%txtNotes.editable = true
@@ -330,6 +334,8 @@ func _on_stop_time_changed(value:float):
 	if loading:
 		return
 	data.stopTimes[data.getIndex(sel_key)] = value
+	timeline.selectedmarker.y = value
+	
 	something_changed()
 
 func _on_start_time_changed(value:float):
@@ -337,6 +343,7 @@ func _on_start_time_changed(value:float):
 		return
 	%spinStopTime.min_value = max(0.1, %spinStartTime.value+0.1) #Stoptime must start after starttime
 	data.startTimes[data.getIndex(sel_key)] = value
+	timeline.selectedmarker.x = value
 	something_changed()
 
 func _on_btn_test_pressed():
@@ -352,7 +359,7 @@ func _on_btn_test_pressed():
 	if start < 0 or stop < 0:
 		printerr("Cannot test-play. voice audio segment not found.")
 		return
-	%timeline.play(start, stop)
+	timeline.play(start, stop)
 
 #key entry text changed.
 func _on_entry_key_text_changed(new_text):

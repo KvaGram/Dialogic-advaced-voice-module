@@ -11,13 +11,11 @@ var _secunds_per_pixel:float
 
 var _previewdata:PackedByteArray
 
-var base_scale:float #scale to fit whole timeline image in editor window
-var scale_value:int #indicates viewscale in a power of 2. Where values 0, 1, 2, 3 is x1, x2, x4, x8 etc.
-
 var startT:int = 0 # beginning of the visible timeline, in decisecunds
 var pageT:int = 200 #how much of the timeline is shown on screen
 
-var marker:Vector2i
+var editmarker:Vector2 = Vector2.ZERO
+var selectedmarker:Vector2 = Vector2.ZERO
 
 var doRedraw:bool = false
 var redraw_timer:float = 0
@@ -39,12 +37,45 @@ func _ready():
 #	play(0, 20)
 
 func onDrawmarkers():
+	var x:float
+	var y:float
+	var s:float = %boxTimeline.get_rect().size.x / pageT
+	#draw selected marker
+
+	if(selectedmarker.y - selectedmarker.x > 0.1):
+		x = (selectedmarker.x*10 - startT) * s #start of selected
+		y = (selectedmarker.y*10 - startT) * s #stop of selected
+		#print("selectedmarker.x ", selectedmarker.y)
+		drawlayer.draw_line(Vector2(x, 150), Vector2(x, 200), Color.CYAN, 2, true)
+		drawlayer.draw_line(Vector2(y, 150), Vector2(y, 200), Color.RED, 2, true)
+		drawlayer.draw_line(Vector2(x, 200), Vector2(y, 200), Color.ORANGE, 2, true)
+#	if(editmarker.y - editmarker.x > 0.1):
+#		x = (editmarker.x*10 - startT) * s #start of edit
+#		y = (editmarker.y*10 - startT) * s #stop of edit	
+#		drawlayer.draw_line(Vector2(x, 0), Vector2(x, 20), Color.BLUE, 2, true)
+#		drawlayer.draw_line(Vector2(x, 30), Vector2(x, 50), Color.BLUE, 2, true)
+#		drawlayer.draw_line(Vector2(y, 0), Vector2(y, 20), Color.DARK_RED, 2, true)
+#		drawlayer.draw_line(Vector2(y, 30), Vector2(y, 50), Color.DARK_RED, 2, true)
+#		drawlayer.draw_line(Vector2(x, 0), Vector2(y, 0), Color.YELLOW, 2, true)
+	
+	if (%player.playing):
+		x = (%player.get_playback_position() * 10 - startT) * s
+		drawlayer.draw_line(Vector2(x, 150), Vector2(x, 50), Color.DARK_GREEN, 2, true)
+	#Hard-testing start as 2 secunds, stop as 5 secunds, play at 2.5 secunds
+	
 	#test, do remove.
-	drawlayer.draw_circle(Vector2(20, 20), 10, Color.YELLOW)
+	#drawlayer.draw_circle(Vector2(20, 20), 10, Color.YELLOW)
 	
 	#TODO: convert from datapoint to local pixel x-co-ordinate
-	var start = marker.x
-	var stop = marker.y
+	
+#	var start = (-startT + 20) * scale
+#	var stop = (-startT + 50) * scale
+	
+	#print("drawing makers at start %d stop %d play %d" % [start, stop, play])
+#	drawlayer.draw_line(Vector2(start, 0), Vector2(start, 50), Color.BLUE, 2, true)
+#	drawlayer.draw_line(Vector2(stop, 0), Vector2(stop, 50), Color.DARK_RED, 2, true)
+#	drawlayer.draw_line(Vector2(play, 200), Vector2(play, 50), Color.DARK_GREEN, 2, true)
+	
 	
 	#TODO - sedocode below
 	
@@ -57,6 +88,8 @@ func onDrawmarkers():
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
+	#always redraw markers
+	drawlayer.queue_redraw()
 	if (%player.playing):
 		#saving volume of left and right channels.
 		#value is set to minimum of 1, so no data (value 0) can be seperated from silence
@@ -67,7 +100,7 @@ func _process(delta):
 		_previewdata[(p*2)+1] = r
 		doRedraw = true
 		
-		if p > _targetT:
+		if %player.get_playback_position() > _targetT:
 			%player.stop()
 	if doRedraw:
 		if redraw_timer >= redraw_time:
@@ -75,6 +108,7 @@ func _process(delta):
 		else:
 			redraw_timer += delta
 func set_stream(stream:AudioStream, previewdata:PackedByteArray):
+	#TODO warn user if clip length is less than 1 secund.
 	%player.stream = stream
 	set_previewdata(previewdata)
 	setStartPage(0, getMaxT())
@@ -87,7 +121,7 @@ func play(start:float, stop:float):
 func get_previewdata()->PackedByteArray:
 	return _previewdata.compress()
 func set_previewdata(val:PackedByteArray):
-	var length = roundi(%player.stream.get_length() * 20) # 2 channels, decisecunds.
+	var length = ceili(%player.stream.get_length() * 20) # 2 channels, decisecunds.
 	#if incoming data is empty, make a new packedbytearray
 	if val.size() < 1:
 		_previewdata = PackedByteArray()
@@ -108,36 +142,35 @@ func set_previewdata(val:PackedByteArray):
 func draw_preview():
 	redraw_timer = 0
 	doRedraw = false
-	drawlayer.queue_redraw()
 	var width:int = %boxTimeline.get_rect().size.x
-	var time_width = getStopT() - startT
 	if width < 0:
 		printerr("VoiceDataTimeline has no space to draw")
 		return
-	if time_width < 0:
+	if pageT < 0:
 		#woops. Something went wrong. Quick! Draw a placeholder, pretend everything is alright! (even though we know it's not D>:} )
 		Image.create(width, 200, false, Image.FORMAT_L8)
 		image.fill(Color.GRAY)
 		%timeline_texture.texture = ImageTexture.create_from_image(image)
 		return
-	if(width >= time_width):
-		_draw_preview_wide(width / time_width)
+	if(width >= pageT):
+		_draw_preview_wide(float(width) / pageT)
 	else:
-		_draw_preview_thin(ceili(float(time_width) / width))
+		_draw_preview_thin((float(pageT) / width))
 	return
 
 #draw wide. Takes in ppds, pixels per decisecunds, to know how many pixels wide to draw for each datapoint.
 #ppds pixels per decisecunds, rounded to whole
-func _draw_preview_wide(ppds:int):
+func _draw_preview_wide(ppds:float):
 	#exact width of the texture is adjusted to allow for any rounding of ppds
 	#resulting texture width may not fit perfectly in timeline_texture, so this element is set to scale the resulting texture.
-	var width:int = ppds * (getStopT() - startT)
-	#image is limited to a grayscale format, with black as silence, and white as volume/data.
+	var width:int = ceili(ppds * (pageT))
+	#print("Drawing wide preview with ppds: ", ppds)
+	##image is limited to a grayscale format, with black as silence, and white as volume/data.
 	var image = Image.create(width, 200, false, Image.FORMAT_L8)
 	image.fill(Color.BLACK)
 	
 	#The time t posision controls what to draw in the drawing-loop, x is incremented by ppds
-	var x:int = 0
+	var x:float = 0
 	var t:int = startT
 	var l:int = 0
 	var r:int = 0
@@ -147,8 +180,8 @@ func _draw_preview_wide(ppds:int):
 		#right chanel is stored in odd.
 		r = _previewdata[(t*2)+1]
 		#left channel is drawn in negative Y, right in positive Y
-		image.fill_rect(Rect2i(x, 100-l, ppds, l), Color.WHITE)
-		image.fill_rect(Rect2i(x, 100, ppds, r), Color.WHITE)
+		image.fill_rect(Rect2i(floori(x), 100-l, ceili(ppds), l), Color.WHITE)
+		image.fill_rect(Rect2i(floori(x), 100, ceili(ppds), r), Color.WHITE)
 		x += ppds 
 		t += 1
 	%timeline_texture.texture = ImageTexture.create_from_image(image)
@@ -236,6 +269,7 @@ func setStartPage(start:int, page:int):
 	
 	scrollTime.page = pageT
 	scrollTime.value = startT
+	scrollTime.max_value = getMaxT()
 	doRedraw = true
 
 func setStart(value):
@@ -243,7 +277,9 @@ func setStart(value):
 	doRedraw = true
 
 func setPagesize(value:int):
-	value = clamp(value, 0, getMaxT())
+	#clamping page size to minimum of 10 decisecunds
+	#minor concerns in edgecase where user loads clip lasting less than 1 secund. why? mistake? some hack parhaps? 
+	value = clamp(value, 10, getMaxT()) 
 	var diff = value - pageT
 	setStartPage(max(startT - diff/2, 0), value)
 
