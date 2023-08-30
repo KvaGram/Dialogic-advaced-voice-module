@@ -58,7 +58,8 @@ func _open_resource(resource:Resource) -> void:
 	
 	# make sure changes in the ui won't trigger saving
 	loading = true
-	audio = load(data.main_audio_path)
+	
+	audio = load(data.main_audio_path) if FileAccess.file_exists(data.main_audio_path) else null
 	var n:Control
 	#preview data is a PackedByteArray with two datapoints (stereo) per decisecund of sound
 	if(audio):
@@ -386,7 +387,7 @@ func _on_entry_key_text_submitted(new_text):
 	
 func _on_load_audio(_p_name, value):
 	data.main_audio_path = value
-	audio = load(value)
+	audio = load(data.main_audio_path) if FileAccess.file_exists(data.main_audio_path) else null
 	if(audio):
 		timeline.set_stream(audio, PackedByteArray())
 	something_changed()
