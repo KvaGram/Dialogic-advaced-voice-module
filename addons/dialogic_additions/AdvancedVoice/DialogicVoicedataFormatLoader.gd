@@ -10,7 +10,7 @@ func _get_recognized_extensions() -> PackedStringArray:
 	return PackedStringArray(["dvd"])
 
 
-# Returns "Rrsource" if this file can/should be loaded by this script
+# Returns "Resource" if this file can/should be loaded by this script
 func _get_resource_type(path: String) -> String:
 	var ext = path.get_extension().to_lower()
 	if ext == "dvd":
@@ -21,12 +21,13 @@ func _get_resource_type(path: String) -> String:
 
 # Return true if this type is handled
 func _handles_type(typename: StringName) -> bool:
+	print("VoicedataFormatLoader._handles_type ", typename)
 	return ClassDB.is_parent_class(typename, "Resource")
 
 
 # parse the file and return a resource
 func _load(path: String, original_path: String, use_sub_threads: bool, cache_mode: int):
-#	print('[Dialogic] Reimporting character "' , path, '"')
+	print('[Dialogic] loading voicedata "' , path, '"')
 	if FileAccess.file_exists(path):
 		var file = FileAccess.open(path, FileAccess.READ)
 		return dict_to_inst(str_to_var(file.get_as_text()))
@@ -37,7 +38,7 @@ func _load(path: String, original_path: String, use_sub_threads: bool, cache_mod
 
 func _get_dependencies(path:String, add_type:bool):
 	var depends_on : PackedStringArray
-	var voicedata:Voicedata = load(path)
+	var voicedata:DialogicVoicedata = load(path)
 	#TODO: add voice files as dependencies.
 	#for p in character.portraits.values():
 	#	if 'path' in p and p.path:

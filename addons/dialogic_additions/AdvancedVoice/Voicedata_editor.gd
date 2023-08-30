@@ -12,7 +12,7 @@ var audio:AudioStream
 #var audio_previews:Array[Texture2D]
 
 #data refrences current_resource, but with a Voicedata type-hint
-var data:Voicedata 
+var data:DialogicVoicedata 
 var sel_key:String = "-1"
 var true_index:int = 0
 var keys_local:Array[String] = [] #keys in order they appear in %listEntries
@@ -20,7 +20,7 @@ var keys_local:Array[String] = [] #keys in order they appear in %listEntries
 var valid_text_regex:RegEx
 const valid_text_regex_pattern:String = "[^A-Z1-9\\.]"
 
-@onready var timeline:VoiceDataTimeline = %timeline
+@onready var timeline:VoicedataTimeline = %timeline
 
 ###TODO: attempt to recreate a preview generator by adding a muted audiobus, and recording it's local volume.
 
@@ -31,10 +31,12 @@ const valid_text_regex_pattern:String = "[^A-Z1-9\\.]"
 
 # Method is called once editors manager is ready to accept registers.
 func _register() -> void:
-	# Makes the editor open this when a .dch file is selected.
+	resource_unsaved.connect(_on_resource_unsaved)
+	resource_saved.connect(_on_resource_saved)
+	# Makes the editor open this when a .dvd file is selected.
 	# Then _open_resource() is called.
 	editors_manager.register_resource_editor("dvd", self)
-	# Add an "add character" button
+	# Add a "add voicedata" button
 	var add_voicedata_button = editors_manager.add_icon_button( 
 			load("res://addons/dialogic_additions/AdvancedVoice/icon.png"),
 			'Add voicedata',
@@ -51,7 +53,7 @@ func _register() -> void:
 # Called when a character is opened somehow
 func _open_resource(resource:Resource) -> void:
 	# update resource
-	current_resource = (resource as Voicedata)
+	current_resource = (resource as DialogicVoicedata)
 	data = current_resource
 	
 	# make sure changes in the ui won't trigger saving
@@ -93,12 +95,12 @@ func _open_resource(resource:Resource) -> void:
 func reload_list():
 	%listEntries.clear()
 	keys_local.clear()
-	var data:Voicedata = current_resource as Voicedata
+	var data:DialogicVoicedata = current_resource as DialogicVoicedata
 	if not data:
 		%FilePickerAudio.set_value("")
 		return
 	%FilePickerAudio.set_value(data.main_audio_path)
-	keys_local = data.keys.duplicate()
+	keys_local = data.voiceKeys.duplicate()
 	keys_local.sort()
 	for k in keys_local:
 		var i:int = %listEntries.add_item(data.makeEntryShortName(k))
@@ -151,7 +153,7 @@ func selectEntryKey(key:String = ""):
 	%spinStopTime.value = data.stopTimes[i]
 	timeline.selectedmarker.y = data.stopTimes[i]
 	%spinStopTime.editable = true
-	%txtNotes.text = data.notes[i]
+	%txtNotes.text = data.voiceNotes[i]
 	%txtNotes.editable = true
 	
 	if keys_local[getSelIndex()] != key:
@@ -222,12 +224,11 @@ func _save_resource() -> void:
 		%listEntries.set_item_text(li, data.makeEntryShortName(keys_local[li]))
 
 func new_voicedata(path: String) -> void:
-	var resource := Voicedata.new()
+	var resource := DialogicVoicedata.new()
 	resource.resource_path = path
 	resource.display_name = path.get_file().trim_suffix("."+path.get_extension())
-	resource.startTimes = [0.0]
-	resource.stopTimes = [0.1]
-	resource.notes = ["First segment. change me"]
+	resource.voiceTimes = [Vector2(0.0, 0.1)]
+	resource.voiceNotes = ["First segment. change me"]
 	ResourceSaver.save(resource, path)
 	editors_manager.edit_resource(resource)
 
@@ -268,7 +269,7 @@ func seach_by_notes_first(new_text):
 	while li < %listEntries.item_count:
 		#print("seach_by_notes_first - scanning index ", li, " for ", new_text)
 		var k = keys_local[li]
-		if data.notes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
+		if data.voiceNotes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
 			selectEntry(li)
 			return
 		li += 1
@@ -280,7 +281,7 @@ func seach_by_notes_next(new_text):
 	while li < %listEntries.item_count:
 		#print("seach_by_notes_next - scanning index ", li, " for ", new_text)
 		var k = keys_local[li]
-		if data.notes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
+		if data.voiceNotes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
 			selectEntry(li)
 			return
 		li += 1
@@ -291,24 +292,22 @@ func seach_by_notes_next(new_text):
 func _on_btn_delete_segment_pressed():
 	var i = data.getIndex(sel_key)
 	
-	data.startTimes.remove_at(i)
-	data.stopTimes.remove_at(i)
-	data.notes.remove_at(i)
-	data.keys.remove_at(i)
+	data.voiceTimes.remove_at(i)
+	data.voiceNotes.remove_at(i)
+	data.voiceKeys.remove_at(i)
 	reload_list()
 
 #adds a segment
 func _on_btn_add_segment_pressed():
 	#generate key name
 	var ki = 0
-	while str(ki) in data.keys:
+	while str(ki) in data.voiceKeys:
 		ki += 1
 	var key:String = str(ki)
 	#creating data
-	data.startTimes.append(0.0)
-	data.stopTimes.append(0.1)
-	data.notes.append("New voice segment")
-	data.keys.append(key)
+	data.voiceTimes.append(Vector2(0.0,0.1))
+	data.voiceNotes.append("New voice segment")
+	data.voiceKeys.append(key)
 	
 	#adding to list in editor
 	%listEntries.add_item(data.makeEntryShortName(key))
@@ -318,7 +317,7 @@ func _on_btn_add_segment_pressed():
 func _on_rename_key(new_key):
 	var i = data.getIndex(sel_key)
 	var li = getSelIndex()
-	data.keys[i] = new_key
+	data.voiceKeys[i] = new_key
 	#keys_local[li] = new_key
 	sel_key = new_key
 	refresh_list()
@@ -327,13 +326,13 @@ func _on_rename_key(new_key):
 func _on_notes_changed():
 	if loading:
 		return
-	data.notes[data.getIndex(sel_key)] = %txtNotes.text
+	data.voiceNotes[data.getIndex(sel_key)] = %txtNotes.text
 	something_changed()
 	
 func _on_stop_time_changed(value:float):
 	if loading:
 		return
-	data.stopTimes[data.getIndex(sel_key)] = value
+	data.voiceTimes[data.getIndex(sel_key)].y = value
 	timeline.selectedmarker.y = value
 	
 	something_changed()
@@ -342,7 +341,7 @@ func _on_start_time_changed(value:float):
 	if loading:
 		return
 	%spinStopTime.min_value = max(0.1, %spinStartTime.value+0.1) #Stoptime must start after starttime
-	data.startTimes[data.getIndex(sel_key)] = value
+	data.voiceTimes[data.getIndex(sel_key)].x = value
 	timeline.selectedmarker.x = value
 	something_changed()
 
@@ -354,8 +353,8 @@ func _on_btn_test_pressed():
 	if not audio:
 		print("Please uh please load an audiofile before trying to play it")
 		return
-	var start = data.get_start(key)
-	var stop  = data.get_stop (key)
+	var start = data.getVoiceStart(key)
+	var stop  = data.getVoiceStop(key)
 	if start < 0 or stop < 0:
 		printerr("Cannot test-play. voice audio segment not found.")
 		return
@@ -379,8 +378,8 @@ func _on_entry_key_text_submitted(new_text):
 		return
 	_on_entry_key_text_changed(new_text) #make sure text is valid.
 	var new_key = %entryKey.text
-	if (new_key in data.keys):
-		#TODO: add rejection alert
+	if (new_key in data.voiceKeys):
+		%entryKey.text = sel_key
 		return
 	#do the change
 	_on_rename_key(new_key)
@@ -392,3 +391,9 @@ func _on_load_audio(_p_name, value):
 		timeline.set_stream(audio, PackedByteArray())
 	something_changed()
 	
+func _on_resource_unsaved():
+	if current_resource:
+		current_resource.set_meta("timeline_not_saved", true)
+func _on_resource_saved():
+	if current_resource:
+		current_resource.set_meta("timeline_not_saved", false)

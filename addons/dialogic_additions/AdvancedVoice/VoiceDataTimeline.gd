@@ -1,6 +1,6 @@
 @tool
 extends MarginContainer
-class_name VoiceDataTimeline
+class_name VoicedataTimeline
 var _lastT:float #last timestamp
 var _targetT:float
 
@@ -37,6 +37,8 @@ func _onDrawTimeline():
 	timeline.draw_line(Vector2(0, 100), Vector2(width, 100), Color.DARK_GRAY, 1, true)
 
 func _onDrawTimelineWide(ppds:float):
+	if not %player.stream:
+		return
 	var x:float = 0
 	var l:int = 0
 	var r:int = 0
@@ -163,6 +165,8 @@ func _on_audio_stop():
 	pass
 
 func getMaxT() -> int:
+	if not %player.stream:
+		return 1
 	return int(%player.stream.get_length() * 10)
 func getStopT() -> int:
 	return min(startT + pageT, getMaxT())

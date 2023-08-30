@@ -5,7 +5,7 @@ extends DialogicSubsystem
 ## The current voice timer
 var voice_timer:Timer
 ## The current audio
-var current_voice_data:Voicedata
+var current_voice_data:DialogicVoicedata
 
 var voice_player := AudioStreamPlayer.new()
 
@@ -25,7 +25,7 @@ func resume() -> void:
 	if voice_timer:
 		voice_timer.paused = false
 		
-func clear_game_state():
+func clear_game_state(clear_flag:=Dialogic.ClearFlags.FullClear):
 	pass
 
 func load_game_state():
@@ -49,7 +49,7 @@ func play_voice(index:int = 0):
 func set_file(path:String):
 	if current_voice_data.is_self(path):
 		return
-	var loaded:Voicedata = ResourceLoader.load(path, "Voicedata", ResourceLoader.CACHE_MODE_REUSE)
+	var loaded:DialogicVoicedata = ResourceLoader.load(path, "DialogicVoicedata", ResourceLoader.CACHE_MODE_REUSE)
 	current_voice_data = loaded
 	#var audio:AudioStream = load(path) #TODO change to voicedata
 	#TODO: check for faults in loaded audio
