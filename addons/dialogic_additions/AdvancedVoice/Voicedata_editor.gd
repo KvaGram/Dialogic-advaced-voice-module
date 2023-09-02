@@ -131,7 +131,7 @@ func selectEntryKey(key:String = ""):
 	if not key in keys_local:
 		disable_entry_edit()
 		return
-	var i = data.getIndex(key)
+	var i = data.getVoiceIndex(key)
 	var li = keys_local.find(key)
 	if i < 0:
 		print("voice segment %s not found on file"%[i])
@@ -144,15 +144,15 @@ func selectEntryKey(key:String = ""):
 	loading = true
 	sel_key = key
 	
-	print("data start[i] ", data.startTimes[i])
+	print("data start[i] ", data.voiceTimes[i].x)
 	
 	%entryKey.text = key
 	%entryKey.editable = true
-	%spinStartTime.value = data.startTimes[i]
-	timeline.selectedmarker.x = data.startTimes[i]
+	%spinStartTime.value = data.voiceTimes[i].x
+	timeline.selectedmarker.x = data.voiceTimes[i].x
 	%spinStartTime.editable = true
-	%spinStopTime.value = data.stopTimes[i]
-	timeline.selectedmarker.y = data.stopTimes[i]
+	%spinStopTime.value = data.voiceTimes[i].y
+	timeline.selectedmarker.y = data.voiceTimes[i].y
 	%spinStopTime.editable = true
 	%txtNotes.text = data.voiceNotes[i]
 	%txtNotes.editable = true
@@ -270,7 +270,7 @@ func seach_by_notes_first(new_text):
 	while li < %listEntries.item_count:
 		#print("seach_by_notes_first - scanning index ", li, " for ", new_text)
 		var k = keys_local[li]
-		if data.voiceNotes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
+		if data.voiceNotes[data.getVoiceIndex(k)].contains(new_text) or k.contains(new_text):
 			selectEntry(li)
 			return
 		li += 1
@@ -282,7 +282,7 @@ func seach_by_notes_next(new_text):
 	while li < %listEntries.item_count:
 		#print("seach_by_notes_next - scanning index ", li, " for ", new_text)
 		var k = keys_local[li]
-		if data.voiceNotes[data.getIndex(k)].contains(new_text) or k.contains(new_text):
+		if data.voiceNotes[data.getVoiceIndex(k)].contains(new_text) or k.contains(new_text):
 			selectEntry(li)
 			return
 		li += 1
@@ -291,7 +291,7 @@ func seach_by_notes_next(new_text):
 
 #deletes a segment
 func _on_btn_delete_segment_pressed():
-	var i = data.getIndex(sel_key)
+	var i = data.getVoiceIndex(sel_key)
 	
 	data.voiceTimes.remove_at(i)
 	data.voiceNotes.remove_at(i)
@@ -316,7 +316,7 @@ func _on_btn_add_segment_pressed():
 	selectEntryKey(key)
 
 func _on_rename_key(new_key):
-	var i = data.getIndex(sel_key)
+	var i = data.getVoiceIndex(sel_key)
 	var li = getSelIndex()
 	data.voiceKeys[i] = new_key
 	#keys_local[li] = new_key
@@ -327,13 +327,13 @@ func _on_rename_key(new_key):
 func _on_notes_changed():
 	if loading:
 		return
-	data.voiceNotes[data.getIndex(sel_key)] = %txtNotes.text
+	data.voiceNotes[data.getVoiceIndex(sel_key)] = %txtNotes.text
 	something_changed()
 	
 func _on_stop_time_changed(value:float):
 	if loading:
 		return
-	data.voiceTimes[data.getIndex(sel_key)].y = value
+	data.voiceTimes[data.getVoiceIndex(sel_key)].y = value
 	timeline.selectedmarker.y = value
 	
 	something_changed()
@@ -342,7 +342,7 @@ func _on_start_time_changed(value:float):
 	if loading:
 		return
 	%spinStopTime.min_value = max(0.1, %spinStartTime.value+0.1) #Stoptime must start after starttime
-	data.voiceTimes[data.getIndex(sel_key)].x = value
+	data.voiceTimes[data.getVoiceIndex(sel_key)].x = value
 	timeline.selectedmarker.x = value
 	something_changed()
 
