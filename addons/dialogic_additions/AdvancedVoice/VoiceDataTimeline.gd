@@ -62,6 +62,8 @@ func _onDrawTimelineWide(ppds:float):
 		p_l = l
 		p_r = r
 func _onDrawTimelineThin(dspp:float):
+	if not %player.stream:
+		return
 	var x:int = 0
 	var t:int = startT
 	var l:int = 0

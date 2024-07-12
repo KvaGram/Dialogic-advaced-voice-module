@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://7mvxuaulctcq" path="res://addons/dialogic/Editor/Events/Fields/FilePicker.tscn" id="2_7y8lx"]
 [ext_resource type="PackedScene" uid="uid://u4pu4l13npvp" path="res://addons/dialogic_additions/AdvancedVoice/VoiceDataTimeline.tscn" id="2_a4gro"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q65e8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_luacb"]
 content_margin_left = 4.0
 content_margin_top = 0.0
 content_margin_right = 4.0
@@ -18,7 +18,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[sub_resource type="Image" id="Image_jlsnc"]
+[sub_resource type="Image" id="Image_agfai"]
 data = {
 "data": PackedByteArray(255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 94, 94, 127, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 231, 255, 94, 94, 54, 255, 94, 94, 57, 255, 93, 93, 233, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 93, 93, 41, 255, 255, 255, 0, 255, 255, 255, 0, 255, 97, 97, 42, 255, 93, 93, 233, 255, 93, 93, 232, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 44, 255, 255, 255, 0, 255, 97, 97, 42, 255, 97, 97, 42, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 96, 96, 45, 255, 93, 93, 235, 255, 94, 94, 234, 255, 95, 95, 43, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 93, 93, 235, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 233, 255, 95, 95, 59, 255, 96, 96, 61, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 93, 93, 255, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0, 255, 255, 255, 0),
 "format": "RGBA8",
@@ -27,8 +27,8 @@ data = {
 "width": 16
 }
 
-[sub_resource type="ImageTexture" id="ImageTexture_4x221"]
-image = SubResource("Image_jlsnc")
+[sub_resource type="ImageTexture" id="ImageTexture_ye5a4"]
+image = SubResource("Image_agfai")
 
 [node name="Voicedata_editor" type="MarginContainer"]
 offset_right = 1152.0
@@ -46,7 +46,7 @@ layout_mode = 2
 [node name="FilePickerAudio" parent="VBoxContainer/HBoxContainer2" instance=ExtResource("2_7y8lx")]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_q65e8")
+theme_override_styles/panel = SubResource("StyleBoxFlat_luacb")
 file_filter = "*.mp3, *.ogg, *.wav"
 placeholder = "audiofile"
 
@@ -70,31 +70,34 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="containerEditor" type="TabContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="containerEditpanel" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="labelKey" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel"]
+layout_mode = 2
+text = "KEYNAME"
+
+[node name="btnSwitchSegmentEditor" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel"]
+layout_mode = 2
+text = "⮟"
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="containerEditor" type="TabContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel"]
 unique_name_in_owner = true
 layout_mode = 2
 tabs_visible = false
 
-[node name="containerTimeredit" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor"]
+[node name="containerTimeredit" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor"]
 layout_mode = 2
 
-[node name="Label3" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit"]
 layout_mode = 2
-text = "key"
+text = "Start at  "
 
-[node name="entryKey" type="LineEdit" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-max_length = 4
-caret_blink = true
-structured_text_bidi_override = 6
-
-[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
-layout_mode = 2
-text = "Start at"
-
-[node name="spinStartTime" type="SpinBox" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
+[node name="spinStartTime" type="SpinBox" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
@@ -103,11 +106,11 @@ step = 0.1
 value = 9999.9
 suffix = "sec"
 
-[node name="Label2" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
+[node name="Label2" type="Label" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit"]
 layout_mode = 2
-text = "Stop at"
+text = "Stop at  "
 
-[node name="spinStopTime" type="SpinBox" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
+[node name="spinStopTime" type="SpinBox" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
@@ -116,13 +119,13 @@ step = 0.1
 value = 9999.9
 suffix = "sec"
 
-[node name="btnTest" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit"]
+[node name="btnTest" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 text = "TEST"
 
-[node name="containerKeyedit" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor"]
+[node name="containerKeyedit" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor"]
 visible = false
 layout_mode = 2
 
@@ -163,21 +166,21 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "New Glossary Entry"
-icon = SubResource("ImageTexture_4x221")
+icon = SubResource("ImageTexture_ye5a4")
 
 [node name="btnDeleteSegment" type="Button" parent="VBoxContainer/HBoxContainer/VBoxContainer/SegmentEntries/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 tooltip_text = "Delete Glossary Entry"
-icon = SubResource("ImageTexture_4x221")
+icon = SubResource("ImageTexture_ye5a4")
 
 [node name="EntrySearch" type="LineEdit" parent="VBoxContainer/HBoxContainer/VBoxContainer/SegmentEntries/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Search"
-right_icon = SubResource("ImageTexture_4x221")
+right_icon = SubResource("ImageTexture_ye5a4")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer/SegmentEntries"]
 layout_mode = 2
@@ -188,19 +191,14 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="e" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/VBoxContainer"]
-layout_mode = 2
-
 [node name="placeholder" type="Control" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
 [connection signal="value_changed" from="VBoxContainer/HBoxContainer2/FilePickerAudio" to="." method="_on_load_audio"]
-[connection signal="text_changed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit/entryKey" to="." method="_on_entry_key_text_changed"]
-[connection signal="text_submitted" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit/entryKey" to="." method="_on_entry_key_text_submitted"]
-[connection signal="value_changed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit/spinStartTime" to="." method="_on_start_time_changed"]
-[connection signal="value_changed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit/spinStopTime" to="." method="_on_stop_time_changed"]
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditor/containerTimeredit/btnTest" to="." method="_on_btn_test_pressed"]
+[connection signal="value_changed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit/spinStartTime" to="." method="_on_start_time_changed"]
+[connection signal="value_changed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit/spinStopTime" to="." method="_on_stop_time_changed"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/containerEditpanel/containerEditor/containerTimeredit/btnTest" to="." method="_on_btn_test_pressed"]
 [connection signal="text_changed" from="VBoxContainer/HBoxContainer/VBoxContainer/boxNotes/txtNotes" to="." method="_on_notes_changed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/SegmentEntries/HBox/btnAddSegment" to="." method="_on_btn_add_segment_pressed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/VBoxContainer/SegmentEntries/HBox/btnDeleteSegment" to="." method="_on_btn_delete_segment_pressed"]

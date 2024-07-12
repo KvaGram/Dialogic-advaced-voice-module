@@ -12,7 +12,7 @@ var audio:AudioStream
 #var audio_previews:Array[Texture2D]
 
 #data refrences current_resource, but with a Voicedata type-hint
-var data:DialogicVoicedata 
+var data:DialogicVoicedata
 var sel_key:String = "-1"
 var true_index:int = 0
 var keys_local:Array[String] = [] #keys in order they appear in %listEntries
@@ -37,13 +37,13 @@ func _register() -> void:
 	# Then _open_resource() is called.
 	editors_manager.register_resource_editor("dvd", self)
 	# Add a "add voicedata" button
-	var add_voicedata_button = editors_manager.add_icon_button( 
+	var add_voicedata_button = editors_manager.add_icon_button(
 			load("res://addons/dialogic_additions/AdvancedVoice/icon.png"),
 			'Add voicedata',
 			self)
 	add_voicedata_button.pressed.connect(
 			editors_manager.show_add_resource_dialog.bind(
-			new_voicedata, 
+			new_voicedata,
 			'*.dvd; DialogicVoicedata',
 			'Create new voice data',
 			'new voice data',
@@ -55,22 +55,22 @@ func _open_resource(resource:Resource) -> void:
 	# update resource
 	current_resource = (resource as DialogicVoicedata)
 	data = current_resource
-	
+
 	# make sure changes in the ui won't trigger saving
 	loading = true
-	
+
 	audio = load(data.main_audio_path) if FileAccess.file_exists(data.main_audio_path) else null
 	var n:Control
 	#preview data is a PackedByteArray with two datapoints (stereo) per decisecund of sound
 	if(audio):
 		timeline.set_stream(audio, data.previewData)
 	reload_list()
-	
+
 	#maybe todo: add support for multible audiostreams
 	#plugin_reference.get_editor_interface().get_resource_previewer().queue_resource_preview(current_resource.get_stream_path(0),self, &"_on_preview_recived",0)
-	
-	
-	
+
+
+
 	#(...)
 	#Add signal?
 	#voicedata_loaded.emit(resource.resource_path)
@@ -92,7 +92,7 @@ func _open_resource(resource:Resource) -> void:
 #	%boxSegments.add_child(c)
 #	something_changed()
 
-#clears and reloads 
+#clears and reloads
 func reload_list():
 	%listEntries.clear()
 	keys_local.clear()
@@ -123,7 +123,7 @@ func selectEntry(i:int):
 		disable_entry_edit()
 		return
 	selectEntryKey(key)
-	
+
 func getSelIndex()->int:
 	return -1 if not %listEntries.is_anything_selected() else %listEntries.get_selected_items()[0]
 
@@ -143,9 +143,9 @@ func selectEntryKey(key:String = ""):
 		return
 	loading = true
 	sel_key = key
-	
+
 	print("data start[i] ", data.voiceTimes[i].x)
-	
+
 	%entryKey.text = key
 	%entryKey.editable = true
 	%spinStartTime.value = data.voiceTimes[i].x
@@ -156,7 +156,7 @@ func selectEntryKey(key:String = ""):
 	%spinStopTime.editable = true
 	%txtNotes.text = data.voiceNotes[i]
 	%txtNotes.editable = true
-	
+
 	if keys_local[getSelIndex()] != key:
 		%listEntries.select(li)
 	if audio:
@@ -166,7 +166,7 @@ func selectEntryKey(key:String = ""):
 		%spinStopTime.min_value = max(0.1, %spinStartTime.value+0.1)
 	else:
 		print("Please load an audiofile")
-	
+
 	loading = false
 func disable_entry_edit():
 	sel_key = ""
@@ -195,10 +195,10 @@ func _save_resource() -> void:
 #		current_resource.startTimes[i] = c.get_start()
 #		current_resource.stopTimes[i] = c.get_stop()
 #		current_resource.notes[i] = c.get_notes()
-		
+
 	#TODO: save audiopath
-	
-	#example code from character editor. Mimic and adapt for voicedata.	
+
+	#example code from character editor. Mimic and adapt for voicedata.
 #	# Portrait list
 #	current_resource.portraits = get_updated_portrait_dict()
 #
@@ -211,7 +211,7 @@ func _save_resource() -> void:
 #		current_resource.default_portrait = ""
 #
 #	current_resource.scale = %MainScale.value/100.0
-#	current_resource.offset = Vector2(%MainOffsetX.value, %MainOffsetY.value) 
+#	current_resource.offset = Vector2(%MainOffsetX.value, %MainOffsetY.value)
 #	current_resource.mirror = %MainMirror.button_pressed
 #
 #	# Main tabs
@@ -275,7 +275,7 @@ func seach_by_notes_first(new_text):
 			return
 		li += 1
 	#if none found, do nothing.
-	
+
 #when searching, goes to the next match after selected, wraps around.
 func seach_by_notes_next(new_text):
 	var li = getSelIndex() + 1
@@ -292,7 +292,7 @@ func seach_by_notes_next(new_text):
 #deletes a segment
 func _on_btn_delete_segment_pressed():
 	var i = data.getVoiceIndex(sel_key)
-	
+
 	data.voiceTimes.remove_at(i)
 	data.voiceNotes.remove_at(i)
 	data.voiceKeys.remove_at(i)
@@ -309,7 +309,7 @@ func _on_btn_add_segment_pressed():
 	data.voiceTimes.append(Vector2(0.0,0.1))
 	data.voiceNotes.append("New voice segment")
 	data.voiceKeys.append(key)
-	
+
 	#adding to list in editor
 	%listEntries.add_item(data.makeEntryShortName(key))
 	keys_local.append(key)
@@ -329,13 +329,13 @@ func _on_notes_changed():
 		return
 	data.voiceNotes[data.getVoiceIndex(sel_key)] = %txtNotes.text
 	something_changed()
-	
+
 func _on_stop_time_changed(value:float):
 	if loading:
 		return
 	data.voiceTimes[data.getVoiceIndex(sel_key)].y = value
 	timeline.selectedmarker.y = value
-	
+
 	something_changed()
 
 func _on_start_time_changed(value:float):
@@ -384,14 +384,14 @@ func _on_entry_key_text_submitted(new_text):
 		return
 	#do the change
 	_on_rename_key(new_key)
-	
+
 func _on_load_audio(_p_name, value):
 	data.main_audio_path = value
 	audio = load(data.main_audio_path) if FileAccess.file_exists(data.main_audio_path) else null
 	if(audio):
 		timeline.set_stream(audio, PackedByteArray())
 	something_changed()
-	
+
 func _on_resource_unsaved():
 	if current_resource:
 		current_resource.set_meta("timeline_not_saved", true)

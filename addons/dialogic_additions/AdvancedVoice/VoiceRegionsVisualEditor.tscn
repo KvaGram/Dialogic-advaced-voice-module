@@ -1,0 +1,102 @@
+[gd_scene load_steps=2 format=3 uid="uid://ycvmfmrx1erv"]
+
+[ext_resource type="Script" path="res://addons/dialogic_additions/AdvancedVoice/VoiceRegionsVisualEditor.gd" id="1_3tl6p"]
+
+[node name="VoiceRegionsVisualEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1559.0
+offset_bottom = -575.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_3tl6p")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="template" type="HBoxContainer" parent="VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="label_key" type="Label" parent="VBoxContainer/template"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "KEY55"
+
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer/template"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
+tooltip_text = "Stop timestamp
+formated as
+minutes : secunds . centi-secunds
+(mm:ss.cc)"
+placeholder_text = "00:00:00"
+
+[node name="LineEdit2" type="LineEdit" parent="VBoxContainer/template"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
+tooltip_text = "Stop timestamp
+formated as
+minutes : secunds . centi-secunds
+(mm:ss.cc)
+"
+placeholder_text = "00:00:00"
+
+[node name="btn_remove" type="Button" parent="VBoxContainer/template"]
+layout_mode = 2
+text = "-"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="content" type="VBoxContainer" parent="VBoxContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="txt_newkey" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "ID-code for voice-clip. Minimum 1, Max 5 character. Restricted to alpha-numerical upper-case. No space, no special characters.
+Used in text event to define when a voice-clip is used.
+Example use:
+A1  - person A's first voice line
+C3 - Person C's third line
+593 - Voice line 593 (if you're crazy)"
+placeholder_text = "New voiceclip key"
+max_length = 5
+
+[node name="btn_add" type="Button" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+"
+
+[node name="btn_import" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+tooltip_text = "Press this button to check your clipboard for supported voiceclip formats in pure-text. This will then attempt to import them.
+Supported formats:
+Audacity - label track text export"
+text = "Import clipdata from clipboard"
+flat = true
+
+[connection signal="text_changed" from="VBoxContainer/HBoxContainer/txt_newkey" to="." method="_on_newname_change"]
+[connection signal="text_submitted" from="VBoxContainer/HBoxContainer/txt_newkey" to="." method="_on_add_new_key"]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/btn_add" to="." method="_on_btn_add_key_pressed"]
+[connection signal="pressed" from="VBoxContainer/btn_import" to="." method="_on_import"]

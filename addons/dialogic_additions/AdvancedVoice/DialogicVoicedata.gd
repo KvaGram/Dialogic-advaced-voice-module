@@ -36,7 +36,7 @@ func makeEntryShortName(key:String)->String:
 	if index < 0:
 		return "%03s - missing" % [key]
 	return "%03s - [%6.1f-%-6.1f] %s" % [key, voiceTimes[index].x, voiceTimes[index].y, (voiceNotes[index] if len(voiceNotes[index]) <= 20 else voiceNotes[index].substr(0,18) + "..")]
-	
+
 
 
 func _hide_script_from_inspector() -> bool:
@@ -80,4 +80,4 @@ func getVoiceNotes(key:String)->String:
 	if i < 0:
 		return "missing"
 	return voiceNotes[i]
-	
+

@@ -9,10 +9,10 @@ func _get_recognized_extensions(resource: Resource) -> PackedStringArray:
 func _recognize(resource: Resource) -> bool:
 	# Cast instead of using "is" keyword in case is a subclass
 	resource = resource as DialogicVoicedata
-	
+
 	if resource:
 		return true
-	
+
 	return false
 
 # Save the resource

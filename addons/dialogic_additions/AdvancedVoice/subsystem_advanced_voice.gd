@@ -24,12 +24,12 @@ func resume() -> void:
 	voice_player.stream_paused = false
 	if voice_timer:
 		voice_timer.paused = false
-		
-func clear_game_state(clear_flag:=Dialogic.ClearFlags.FullClear):
-	pass
 
-func load_game_state():
-	pass
+#func clear_game_state(clear_flag:=Dialogic.ClearFlags.FullClear):
+	#pass
+#
+#func load_game_state():
+	#pass
 
 
 ####################################################################################################
@@ -38,7 +38,7 @@ func load_game_state():
 
 func _ready() -> void:
 	add_child(voice_player)
-	
+
 func play_voice(index:int = 0):
 	voice_player.stream = current_voice_data.getStream(index)
 	var start:float = 0
@@ -54,7 +54,7 @@ func set_file(path:String):
 	#var audio:AudioStream = load(path) #TODO change to voicedata
 	#TODO: check for faults in loaded audio
 	#voice_player.stream = audio
-	
+
 func set_volume(value:float):
 	voice_player.volume_db = value
 
@@ -63,7 +63,7 @@ func set_bus(value:String):
 
 func stop_audio():
 	voice_player.stop()
-	
+
 func set_timer(time:float):
 	if !voice_timer:
 		voice_timer = Timer.new()
