@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://bka4ldggmbeq1"]
+
+[ext_resource type="Script" path="res://addons/dialogic_additions/AdvancedVoice/TimecodeVisualEditor.gd" id="1_ww47a"]
+
+[node name="TimecodeVisualEditor" type="HBoxContainer"]
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
+tooltip_text = "Stop timestamp
+formated as
+minutes : secunds . centi-secunds
+(mm:ss.cc)"
+script = ExtResource("1_ww47a")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+text = "Time"
+
+[node name="text" type="LineEdit" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "00:00.00"
+alignment = 2
+max_length = 11
+virtual_keyboard_type = 3
+
+[node name="Mode" type="Button" parent="."]
+layout_mode = 2
+toggle_mode = true
+text = "*"
+
+[connection signal="text_changed" from="text" to="." method="_on_text_text_changed"]
+[connection signal="toggled" from="Mode" to="." method="_on_mode_toggled"]

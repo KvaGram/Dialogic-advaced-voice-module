@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://ycvmfmrx1erv"]
+[gd_scene load_steps=3 format=3 uid="uid://ycvmfmrx1erv"]
 
 [ext_resource type="Script" path="res://addons/dialogic_additions/AdvancedVoice/VoiceRegionsVisualEditor.gd" id="1_3tl6p"]
+[ext_resource type="PackedScene" uid="uid://bka4ldggmbeq1" path="res://addons/dialogic_additions/AdvancedVoice/TimecodeVisualEditor.tscn" id="2_1lm7w"]
 
 [node name="VoiceRegionsVisualEditor" type="Control"]
 layout_mode = 3
@@ -33,26 +34,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "KEY55"
 
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/template"]
+[node name="start" parent="VBoxContainer/template" instance=ExtResource("2_1lm7w")]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 5.0
-tooltip_text = "Stop timestamp
-formated as
-minutes : secunds . centi-secunds
-(mm:ss.cc)"
-placeholder_text = "00:00:00"
 
-[node name="LineEdit2" type="LineEdit" parent="VBoxContainer/template"]
+[node name="stop" parent="VBoxContainer/template" instance=ExtResource("2_1lm7w")]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 5.0
-tooltip_text = "Stop timestamp
-formated as
-minutes : secunds . centi-secunds
-(mm:ss.cc)
-"
-placeholder_text = "00:00:00"
 
 [node name="btn_remove" type="Button" parent="VBoxContainer/template"]
 layout_mode = 2

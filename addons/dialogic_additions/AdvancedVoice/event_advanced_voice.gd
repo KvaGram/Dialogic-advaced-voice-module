@@ -10,18 +10,15 @@ var file_path: String = ""
 var volume: float = 0
 ## The audio bus to play the voice on.
 var audio_bus: String = "Master"
+var clip_data: Dictionary
 
 func _execute() -> void:
-	# If Auto-Skip is enabled, we may not want to play voice audio.
-	# Instant Auto-Skip will always skip voice audio.
-	if (dialogic.Inputs.auto_skip.enabled
-	and dialogic.Inputs.auto_skip.skip_voice):
-		finish()
-		return
+	# NOTE: This event cannot be skipped.
 
-	dialogic.Voice.set_file(file_path)
-	dialogic.Voice.set_volume(volume)
-	dialogic.Voice.set_bus(audio_bus)
+	dialogic.AdvancedVoice.set_file(file_path)
+	dialogic.AdvancedVoice.set_volume(volume)
+	dialogic.AdvancedVoice.set_bus(audio_bus)
+	dialogic.AdvancedVoice.set_clip_data(clip_data)
 	finish()
 	# the rest is executed by a text event
 
@@ -50,7 +47,8 @@ func get_shortcode_parameters() -> Dictionary:
 		#param_name : property_info
 		"path"		: {"property": "file_path", "default": ""},
 		"volume"	: {"property": "volume", 	"default": 0},
-		"bus"		: {"property": "audio_bus", "default": "Master"}
+		"bus"		: {"property": "audio_bus", "default": "Master"},
+		"data"		: {"property": "clip_data", "default": {'FULL' : {'start':0.00, 'stop':99999.99}}}
 	}
 
 # You can alternatively overwrite these 3 functions: to_text(), from_text(), is_valid_event()

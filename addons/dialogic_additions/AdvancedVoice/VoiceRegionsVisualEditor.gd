@@ -15,6 +15,9 @@ func _load_display_info(info:Dictionary) -> void:
 ## To be overwritten
 func _set_value(value:Variant) -> void:
 	val = Dictionary(value)
+	for key val.keys():
+		pass
+
 
 
 ## To be overwritten
@@ -40,14 +43,42 @@ func _on_add_new_key(key:String):
 		key = _valid_text_regex.sub(key, "", true) #removes illigal characters
 	if val.has(key):
 		#TODO add some kind of error feedback
-		return
-	addkey(key)
-func addkey(key:String):
-	if val.has(key):
 		printerr("Unable to add key. key %s already exist." % key)
+		return
+	val[key] = {'start':0.0, 'stop':0.0}
+	_addKeyUI(key)
+
+
+func _addKeyUI(key:String, start:float = 0, stop:float = 0):
+	var n:Node
+	for c:Node in %content.get_children(): #check if node exist
+		if c.name == key:
+			n = c
+			break
+	if not n:
+		n = %template.duplicate()
+		%content.add_child(n)
+		n.name = key
+		n.get_node('start').connect('value_changed', setStart.bind(key))
+		n.get_node('stop').connect('value_changed', setStop.bind(key))
+	n.get_node('start').set_value(start)
+	n.get_node('stop').set_value(stop)
+
+
+func removeKey(key:String):
+	if not val.has(key):
+		printerr("Unable to remove key. key %s not found." % key)
 		return #this may be called from somewhere this is not already tested for.
-
-
+func setStart(key, value):
+	if not val.has(key):
+		printerr("Unable to update start property. key %s not found." % key)
+		return
+	val[key]['start'] = value
+func setStop(key, value):
+	if not val.has(key):
+		printerr("Unable to update stop property. key %s not found." % key)
+		return
+	val[key]['stop'] = value
 func _on_btn_add_key_pressed():
 	_on_add_new_key(%txt_newkey.text)
 
