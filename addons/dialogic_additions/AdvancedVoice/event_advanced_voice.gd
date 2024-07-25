@@ -66,4 +66,5 @@ func build_event_editor():
 		'editor_icon' 	: ["AudioStreamPlayer", "EditorIcons"]})
 	add_body_edit('volume', ValueType.NUMBER, {'left_text':'Volume:', 'mode':2}, '!file_path.is_empty()')
 	add_body_edit('audio_bus', ValueType.SINGLELINE_TEXT, {'left_text':'Audio Bus:'}, '!file_path.is_empty()')
+	add_body_line_break('!file_path.is_empty()')
 	add_body_edit('data', ValueType.CUSTOM, {'path': "res://addons/dialogic_additions/AdvancedVoice/VoiceRegionsVisualEditor.tscn"}, '!file_path.is_empty()')
