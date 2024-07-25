@@ -1,5 +1,5 @@
-class_name VoiceRegionsVisualEditor
 extends DialogicVisualEditorField
+class_name VoiceRegionsVisualEditor
 
 var val:Dictionary
 var _valid_text_regex:RegEx
@@ -15,7 +15,7 @@ func _load_display_info(info:Dictionary) -> void:
 ## To be overwritten
 func _set_value(value:Variant) -> void:
 	val = Dictionary(value)
-	for key val.keys():
+	for key in val.keys():
 		pass
 
 
