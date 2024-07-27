@@ -24,18 +24,17 @@ signal voicelip_started(info: Dictionary)
 ## Key              |   Value Type  | Value [br]
 ## ---------------- | ------------- | ----- [br]
 ## `file`           | [type String] | The path to file played. [br]
-## `remaining_time` | [type float]  | The remaining time of the voiceline. [br]
 #signal voiceline_finished(info: Dictionary)
 
 
-## Emitted whenever a voice line gets interrupted and does not finish playing.
+## Emitted whenever a voice clip ends, whatever it was interrupted or finished playing
 ## The [param info] contains the following keys and values:
 ## [br]
 ## Key              |   Value Type  | Value [br]
 ## ---------------- | ------------- | ----- [br]
 ## `file`           | [type String] | The path to file played. [br]
 ## `remaining_time` | [type float]  | The remaining time of the voiceline. [br]
-#signal voiceline_stopped(info: Dictionary)
+signal voiceline_stopped(info: Dictionary)
 
 
 ## The current audio file being played.
@@ -49,24 +48,31 @@ var voice_timer:Timer
 
 ## the current clip data, used to define when a clip starts and when it ends
 var current_clip_data:Dictionary
+## The current clip key, start and stop, kept for use with signals.
+var current_clip_key:String
+var current_clip_start:float
+var current_clip_stop:float
 
 #region MAIN METHODS
 ####################################################################################################
 func _ready() -> void:
 	add_child(voice_player)
 
+##Immidiatly starts a voiceclip, halting the previus one if running
 func play_voice(key:String):
+	if is_running():
+		stop_audio()
 	voice_player.stream = ResourceLoader.load_threaded_get(current_audio_file)
 	if not current_clip_data.has(key):
 		printerr("Advanced voice: Cannot find key %s in current voice data. Aborting voiceclip")
 		return
-	var start:float = current_clip_data[key].get('start')
-	var stop:float = current_clip_data[key].get('stop')
+	current_clip_start = current_clip_data[key].get('start')
+	current_clip_stop = current_clip_data[key].get('stop')
+	current_clip_key = key
 
-	voice_player.play(start)
-	set_timer(stop - start)
-	voicelip_started.emit({'file': current_audio_file, 'key': key, 'start' : start, 'stop' : stop})
-
+	voice_player.play(current_clip_start)
+	set_timer(current_clip_stop - current_clip_start)
+	voicelip_started.emit({'file': current_audio_file, 'key': current_clip_key, 'start' : current_clip_start, 'stop' : current_clip_stop})
 func set_file(path:String):
 	current_audio_file = path
 	ResourceLoader.load_threaded_request(path, "AudioStream") #load early for less delay. File remains in ResourceLoader.
@@ -82,6 +88,7 @@ func set_bus(value:String):
 func stop_audio():
 	voice_player.stop()
 	voice_timer.stop()
+	voiceline_stopped.emit({'file': current_audio_file, 'key': current_clip_key, 'start' : current_clip_start, 'stop' : current_clip_stop, 'remaining_time' : get_remaining_time()})
 
 func set_timer(time:float):
 	if !voice_timer:
@@ -105,8 +112,14 @@ func is_running() -> bool:
 #region DEFAULT TEXT EFFECTS & MODIFIERS
 ################################################################################
 func effect_vclip(text_node:Control, skipped:bool, argument:String) -> void:
-	if voice_player.playing:
-		pass
+	if skipped:
+		return
+	if argument not in current_clip_data.keys():
+		printerr("unable to find clip with key %s" % [argument])
+		return
+	if is_running(): #wait for current clip to finish
+		await voiceline_stopped
+	play_voice(argument)
 
 #endregion
 

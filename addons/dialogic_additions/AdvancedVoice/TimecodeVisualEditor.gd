@@ -1,3 +1,4 @@
+@tool
 extends DialogicVisualEditorField
 var time:float #time in secunds
 enum DisplayMode {TIMECODE, PLAIN}
@@ -31,7 +32,7 @@ func refresh():
 	if mode == DisplayMode.PLAIN:
 		$text.text = "%0.2f" % time
 	elif mode == DisplayMode.TIMECODE:
-		$text.text = "%2d:%2d:%2d.%2d" % [t.get('h', 0), t.get('m', 0), t.get('s', 0), t.get('cs', 0)]
+		$text.text = "%02d:%02d:%02d.%02d" % [t.get('h', 0), t.get('m', 0), t.get('s', 0), t.get('cs', 0)]
 	$text.caret_column = caret
 	$text.tooltip_text = "%s - %2d hour(s), %2d minute(s) and %2d.%2d secund(s)" % [property_name, t.get('h', 0), t.get('m', 0), t.get('s', 0), t.get('cs', 0)]
 
@@ -47,9 +48,9 @@ func _on_mode_toggled(plainmode:bool):
 
 func secundsToTimecode(s:float)->Dictionary:
 	var ret = {}
-	ret['h'] = roundi(time / 3600)
-	ret['m'] = roundi(time / 60) % 60
-	ret['s'] = roundi(time) % 60
+	ret['h'] = int(time / 3600)
+	ret['m'] = int(time / 60) % 60
+	ret['s'] = int(time) % 60
 	ret['cs']= roundi(time * 100) % 100
 	return ret
 
@@ -75,7 +76,9 @@ func _on_text_text_changed(text:String):
 			t += 60 * int(split[1])
 		t += int(split2[0])
 		if len(split2) >=1:
-			t += int(split2[1])/100
+			#print("centisecunds: ", split2[1], roundi(float(split2[1])/100))
+			#print("centisecunds: ", float(split2[1])/100)
+			t += float(split2[1])/100
 	var t2 = secundsToTimecode(t)
 	$text.tooltip_text = "%s - %2d hour(s), %2d minute(s) and %2d.%2d secund(s)" % [property_name, t2.get('h', 0), t2.get('m', 0), t2.get('s', 0), t2.get('cs', 0)]
 	time = t

@@ -15,10 +15,10 @@ var clip_data: Dictionary
 func _execute() -> void:
 	# NOTE: This event cannot be skipped.
 
-	dialogic.AdvancedVoice.set_file(file_path)
-	dialogic.AdvancedVoice.set_volume(volume)
-	dialogic.AdvancedVoice.set_bus(audio_bus)
-	dialogic.AdvancedVoice.set_clip_data(clip_data)
+	Dialogic.get_subsystem("AdvancedVoice").set_file(file_path)
+	Dialogic.get_subsystem("AdvancedVoice").set_volume(volume)
+	Dialogic.get_subsystem("AdvancedVoice").set_bus(audio_bus)
+	Dialogic.get_subsystem("AdvancedVoice").set_clip_data(clip_data)
 	finish()
 	# the rest is executed by a text event
 
@@ -48,7 +48,7 @@ func get_shortcode_parameters() -> Dictionary:
 		"path"		: {"property": "file_path", "default": ""},
 		"volume"	: {"property": "volume", 	"default": 0},
 		"bus"		: {"property": "audio_bus", "default": "Master"},
-		"data"		: {"property": "clip_data", "default": {'FULL' : {'start':0.00, 'stop':99999.99}}}
+		"clip_data"	: {"property": "clip_data", "default": {'FULL' : {'start':0.00, 'stop':99999.99}}}
 	}
 
 # You can alternatively overwrite these 3 functions: to_text(), from_text(), is_valid_event()
@@ -67,4 +67,4 @@ func build_event_editor():
 	add_body_edit('volume', ValueType.NUMBER, {'left_text':'Volume:', 'mode':2}, '!file_path.is_empty()')
 	add_body_edit('audio_bus', ValueType.SINGLELINE_TEXT, {'left_text':'Audio Bus:'}, '!file_path.is_empty()')
 	add_body_line_break('!file_path.is_empty()')
-	add_body_edit('data', ValueType.CUSTOM, {'path': "res://addons/dialogic_additions/AdvancedVoice/VoiceRegionsVisualEditor.tscn"}, '!file_path.is_empty()')
+	add_body_edit('clip_data', ValueType.CUSTOM, {'path': "res://addons/dialogic_additions/AdvancedVoice/VoiceRegionsVisualEditor.tscn"}, '!file_path.is_empty()')
