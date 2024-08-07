@@ -68,3 +68,48 @@ func build_event_editor():
 	add_body_edit('audio_bus', ValueType.SINGLELINE_TEXT, {'left_text':'Audio Bus:'}, '!file_path.is_empty()')
 	add_body_line_break('!file_path.is_empty()')
 	add_body_edit('clip_data', ValueType.CUSTOM, {'path': "res://addons/dialogic_additions/AdvancedVoice/VoiceRegionsVisualEditor.tscn"}, '!file_path.is_empty()')
+
+
+#### ADDED FOR DEBUG. SHOULD BE REMOVED
+#
+### returns a readable presentation of the event (This is how it's stored)
+### by default it uses a shortcode format, but can be overridden
+#func to_text() -> String:
+	#print("saving adv voice event")
+	#var result_string: String = "["+self.get_shortcode()
+	#var params: Dictionary = get_shortcode_parameters()
+	#var custom_defaults: Dictionary = DialogicUtil.get_custom_event_defaults(event_name)
+	#for parameter in params.keys():
+		#print("- saving ", parameter)
+		#print("-- ", typeof(get(params[parameter].property)) )
+		#print("-- ", typeof(custom_defaults.get(params[parameter].property, params[parameter].default)) )
+		#print("-- ", get(params[parameter].property) )
+		#print("-- ", custom_defaults.get(params[parameter].property, params[parameter].default) )
+#
+		#if (typeof(get(params[parameter].property)) != typeof(custom_defaults.get(params[parameter].property, params[parameter].default))) or \
+		#(get(params[parameter].property) != custom_defaults.get(params[parameter].property, params[parameter].default)):
+			#if typeof(get(params[parameter].property)) == TYPE_OBJECT:
+				#print("-- saving an object")
+				#result_string += " "+parameter+'="'+str(get(params[parameter].property).resource_path)+'"'
+			#elif typeof(get(params[parameter].property)) == TYPE_STRING:
+				#print("-- Saving a string")
+				#result_string += " "+parameter+'="'+get(params[parameter].property).replace('=', "\\=")+'"'
+			## if this is an enum with values provided, try to use a text alternative
+			#elif typeof(get(params[parameter].property)) == TYPE_INT and params[parameter].has('suggestions'):
+				#print("-- saving a enum")
+				#for option in params[parameter].suggestions.call().values():
+					#if option.value == get(params[parameter].property):
+						#if option.has('text_alt'):
+							#result_string += " "+parameter+'="'+option.text_alt[0]+'"'
+						#else:
+							#result_string += " "+parameter+'="'+var_to_str(option.value).replace('=', "\\=")+'"'
+						#break
+			#elif typeof(get(params[parameter].property)) == TYPE_DICTIONARY:
+				#print("-- saving a dictionary")
+				#result_string += " "+parameter+'="'+ JSON.stringify(get(params[parameter].property)).replace('=', "\\=")+'"'
+			#else:
+				#print("-- saving a primitive value")
+				#result_string += " "+parameter+'="'+var_to_str(get(params[parameter].property)).replace('=', "\\=")+'"'
+		#print("-- end of ", parameter)
+	#result_string += "]"
+	#return result_string

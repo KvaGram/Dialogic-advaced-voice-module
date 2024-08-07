@@ -60,9 +60,10 @@ func _ready() -> void:
 
 ##Immidiatly starts a voiceclip, halting the previus one if running
 func play_voice(key:String):
+	#print("play_voice key: %s" % [key])
 	if is_running():
 		stop_audio()
-	voice_player.stream = ResourceLoader.load_threaded_get(current_audio_file)
+	#voice_player.stream = ResourceLoader.load_threaded_get(current_audio_file)
 	if not current_clip_data.has(key):
 		printerr("Advanced voice: Cannot find key %s in current voice data. Aborting voiceclip")
 		return
@@ -75,7 +76,8 @@ func play_voice(key:String):
 	voicelip_started.emit({'file': current_audio_file, 'key': current_clip_key, 'start' : current_clip_start, 'stop' : current_clip_stop})
 func set_file(path:String):
 	current_audio_file = path
-	ResourceLoader.load_threaded_request(path, "AudioStream") #load early for less delay. File remains in ResourceLoader.
+	#ResourceLoader.load_threaded_request(path, "AudioStream") #load early for less delay. File remains in ResourceLoader.
+	voice_player.stream = load(current_audio_file)
 func set_clip_data(data:Dictionary):
 	current_clip_data = data
 
@@ -112,15 +114,22 @@ func is_running() -> bool:
 #region DEFAULT TEXT EFFECTS & MODIFIERS
 ################################################################################
 func effect_vclip(text_node:Control, skipped:bool, argument:String) -> void:
+	#print("effect_vclip arg: %s" % [argument])
 	if skipped:
+		#print("skipped")
 		return
 	if argument not in current_clip_data.keys():
 		printerr("unable to find clip with key %s" % [argument])
 		return
 	if is_running(): #wait for current clip to finish
+		#print("waiting %s secunds" %[get_remaining_time()])
 		await voiceline_stopped
 	play_voice(argument)
-
+func effect_vwait(text_node:Control, skipped:bool, argument:String) -> void:
+	if skipped:
+		return
+	if is_running():
+		await voiceline_stopped
 #endregion
 
 #region STATE
